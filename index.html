@@ -1,0 +1,2485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Antonio's Job Board</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #222538;
+      --border: #2e3250;
+      --accent: #4f6ef7;
+      --accent-soft: rgba(79, 110, 247, 0.12);
+      --accent2: #22d3b0;
+      --text: #e8eaf6;
+      --text-muted: #8b90b0;
+      --strong: #22d3b0;
+      --good: #4f6ef7;
+      --stretch: #f59e0b;
+      --status-pending: #4f6ef7;
+      --status-rejected: #fb7185;
+      --status-interview: #22d3b0;
+      --status-offer: #34d399;
+      --status-notapplied: #8b90b0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      gap: 24px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo-text { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+    .logo-sub  { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+    /* ── Tab nav (in header) ── */
+    .tab-nav {
+      display: flex;
+      gap: 4px;
+      flex: 1;
+      justify-content: center;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); background: var(--surface2); }
+    .tab-btn.active { color: var(--accent); background: var(--accent-soft); }
+    .tab-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: var(--surface2);
+      color: var(--text-muted);
+    }
+    .tab-btn.active .tab-pill { background: rgba(79,110,247,0.2); color: var(--accent); }
+
+    .header-meta { text-align: right; flex-shrink: 0; }
+    .last-updated { font-size: 12px; color: var(--text-muted); }
+    .job-count { font-size: 13px; font-weight: 600; color: var(--accent2); }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Main layout ── */
+    main { max-width: 1280px; margin: 0 auto; padding: 32px 32px 64px; }
+
+    /* ── Controls bar ── */
+    .controls {
+      display: flex; gap: 12px; margin-bottom: 28px;
+      flex-wrap: wrap; align-items: center;
+    }
+    .search-wrap { flex: 1; min-width: 240px; position: relative; }
+    .search-icon {
+      position: absolute; left: 14px; top: 50%;
+      transform: translateY(-50%); color: var(--text-muted); font-size: 15px;
+    }
+    input[type="search"] {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 14px 10px 40px;
+      color: var(--text); font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    input[type="search"]::placeholder { color: var(--text-muted); }
+    input[type="search"]:focus { border-color: var(--accent); }
+
+    .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btn {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 14px;
+      color: var(--text-muted); font-size: 13px;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+    .filter-btn.active {
+      background: var(--accent-soft); border-color: var(--accent);
+      color: var(--accent); font-weight: 600;
+    }
+    select.sort-select {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 14px;
+      color: var(--text); font-size: 13px; cursor: pointer; outline: none;
+    }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+      display: flex; gap: 24px; margin-bottom: 24px;
+      padding: 16px 20px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 12px; flex-wrap: wrap;
+    }
+    .stat { display: flex; align-items: center; gap: 10px; }
+    .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .stat-label { font-size: 12px; color: var(--text-muted); }
+    .stat-val { font-size: 18px; font-weight: 800; line-height: 1; }
+    .stat-divider {
+      width: 1px; background: var(--border); align-self: stretch; margin: 0 4px;
+    }
+
+    /* ── Leads grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 22px;
+      display: flex; flex-direction: column; gap: 14px;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+    .card-header {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; gap: 12px;
+    }
+    .company-logo {
+      width: 42px; height: 42px; border-radius: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 15px; color: var(--accent);
+      flex-shrink: 0; letter-spacing: -0.5px;
+    }
+    .fit-badge {
+      font-size: 11px; font-weight: 700; padding: 4px 9px;
+      border-radius: 20px; letter-spacing: 0.3px; text-transform: uppercase; white-space: nowrap;
+    }
+    .fit-strong { background: rgba(34,211,176,0.15); color: var(--strong); }
+    .fit-good   { background: rgba(79,110,247,0.15);  color: var(--good); }
+    .fit-stretch{ background: rgba(245,158,11,0.15);  color: var(--stretch); }
+
+    .card-title-row { flex: 1; min-width: 0; }
+    .card-title { font-size: 15px; font-weight: 700; line-height: 1.3; margin-bottom: 3px; }
+    .card-company { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+
+    .card-tags { display: flex; gap: 7px; flex-wrap: wrap; }
+    .tag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 6px; }
+
+    .card-desc {
+      font-size: 13px; color: var(--text-muted); line-height: 1.6;
+      display: -webkit-box; -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .card-footer {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-top: auto; padding-top: 4px;
+    }
+    .card-meta { display: flex; flex-direction: column; gap: 2px; }
+    .card-salary { font-size: 12px; color: var(--accent2); font-weight: 600; }
+    .card-date   { font-size: 11px; color: var(--text-muted); }
+
+    .apply-btn {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 8px; padding: 8px 16px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      text-decoration: none; display: inline-block; transition: opacity 0.15s;
+    }
+    .apply-btn:hover { opacity: 0.85; }
+
+    .new-badge {
+      font-size: 10px; font-weight: 700;
+      background: rgba(34,211,176,0.2); color: var(--accent2);
+      padding: 2px 7px; border-radius: 4px;
+      margin-left: 6px; letter-spacing: 0.5px;
+    }
+
+    /* ── Applications table ── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+    }
+    thead tr {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      padding: 12px 16px; text-align: left;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.6px; color: var(--text-muted);
+      white-space: nowrap; cursor: pointer; user-select: none;
+    }
+    th:hover { color: var(--text); }
+    th .sort-arrow { margin-left: 4px; opacity: 0.4; }
+    th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+    td { padding: 13px 16px; vertical-align: middle; }
+
+    .td-company {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .tbl-logo {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 11px; color: var(--accent);
+      flex-shrink: 0;
+    }
+    .tbl-company-name { font-weight: 600; font-size: 13px; }
+    .tbl-role { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 700; padding: 4px 10px;
+      border-radius: 20px; white-space: nowrap; letter-spacing: 0.2px;
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .s-pending  { background: rgba(79,110,247,0.15);  color: var(--status-pending); }
+    .s-rejected { background: rgba(251,113,133,0.15); color: var(--status-rejected); }
+    .s-interview{ background: rgba(34,211,176,0.15);  color: var(--status-interview); }
+    .s-offer    { background: rgba(52,211,153,0.15);  color: var(--status-offer); }
+    .s-notyet   { background: rgba(139,144,176,0.12); color: var(--status-notapplied); }
+
+    .tbl-salary { font-size: 12px; color: var(--accent2); font-weight: 600; white-space: nowrap; }
+    .tbl-date   { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+    .tbl-notes  { font-size: 12px; color: var(--text-muted); max-width: 200px; }
+
+    .view-btn {
+      background: var(--surface2); color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 5px 12px; font-size: 12px; font-weight: 600;
+      cursor: pointer; text-decoration: none; display: inline-block;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .view-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Pipeline bar ── */
+    .pipeline-bar {
+      display: flex; height: 6px; border-radius: 3px; overflow: hidden;
+      margin-bottom: 24px; gap: 2px;
+    }
+    .pipe-seg { border-radius: 2px; transition: flex 0.4s ease; }
+
+    /* ── Loading / error ── */
+    .loading-msg, .error-box {
+      text-align: center; padding: 60px 20px; color: var(--text-muted);
+    }
+    .error-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; max-width: 520px; margin: 0 auto;
+    }
+    .error-box h3 { color: var(--text); margin-bottom: 8px; font-size: 16px; }
+    .error-box p  { font-size: 13px; line-height: 1.7; }
+    .error-box code {
+      display: inline-block; margin-top: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 14px; font-size: 12px;
+      color: var(--accent2); word-break: break-all;
+    }
+    .error-box a { color: var(--accent); }
+
+    /* ── Empty state ── */
+    .empty {
+      grid-column: 1 / -1; text-align: center;
+      padding: 80px 20px; color: var(--text-muted);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .empty h2 { font-size: 20px; margin-bottom: 8px; color: var(--text); }
+    .empty p { font-size: 14px; line-height: 1.6; max-width: 380px; margin: 0 auto; }
+
+    /* ── Icon buttons (refresh / add) ── */
+    .icon-btn {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px; color: var(--text-muted);
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .icon-btn.spinning svg { animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Settings button ── */
+    .settings-btn {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px; color: var(--text-muted);
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .settings-btn:hover { border-color: var(--text-muted); color: var(--text); }
+
+    /* ── Cover Letter tab ── */
+    .cl-layout {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+      padding: 24px 32px; max-width: 1280px; margin: 0 auto;
+    }
+    @media (max-width: 900px) { .cl-layout { grid-template-columns: 1fr; } }
+    .cl-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .cl-section-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+    .cl-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--text); outline: none; transition: border-color 0.15s; }
+    .cl-input:focus { border-color: var(--accent); }
+    .cl-textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--text); outline: none; resize: vertical; min-height: 110px; transition: border-color 0.15s; font-family: inherit; line-height: 1.5; }
+    .cl-textarea:focus { border-color: var(--accent); }
+    .cl-upload-area {
+      border: 2px dashed var(--border); border-radius: 10px; padding: 20px 16px;
+      text-align: center; cursor: pointer; color: var(--text-muted); font-size: 13px;
+      transition: all 0.15s; margin-bottom: 8px;
+    }
+    .cl-upload-area:hover, .cl-upload-area.drag-over { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+    .cl-upload-icon { font-size: 28px; margin-bottom: 6px; }
+    .cl-upload-sub { font-size: 11px; margin: 4px 0 8px; }
+    .cl-upload-area button { background: var(--accent); border: none; border-radius: 6px; padding: 7px 16px; font-size: 12px; font-weight: 700; color: #fff; cursor: pointer; }
+    .cl-file-chip { display: flex; align-items: center; gap: 8px; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 8px; padding: 8px 12px; font-size: 13px; color: var(--accent); margin-bottom: 8px; }
+    .cl-file-chip button { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 16px; margin-left: auto; padding: 0; line-height: 1; }
+    .cl-file-chip button:hover { color: var(--status-rejected); }
+    .cl-fetch-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.15s; }
+    .cl-fetch-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .cl-fetch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .cl-generate-btn {
+      width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; border-radius: 10px; padding: 14px 24px;
+      font-size: 15px; font-weight: 700; color: #fff; cursor: pointer;
+      transition: opacity 0.15s; margin-top: 4px;
+    }
+    .cl-generate-btn:hover { opacity: 0.9; }
+    .cl-generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .cl-output-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; height: fit-content; }
+    .cl-output-header { display: flex; align-items: center; justify-content: space-between; }
+    .cl-output-actions { display: flex; gap: 8px; }
+    .cl-copy-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+    .cl-copy-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+    .cl-output-area { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 13px; color: var(--text); outline: none; resize: vertical; min-height: 400px; font-family: inherit; line-height: 1.7; transition: border-color 0.15s; }
+    .cl-output-area:focus { border-color: var(--accent); }
+    .cl-api-banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 10px; padding: 12px 20px; margin: 16px 32px 0;
+      font-size: 13px; color: #f59e0b; max-width: calc(1280px - 64px); margin-left: auto; margin-right: auto;
+      position: relative; left: 0; right: 0;
+    }
+    .cl-api-banner button { background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); border-radius: 6px; padding: 6px 14px; font-size: 12px; font-weight: 700; color: #f59e0b; cursor: pointer; white-space: nowrap; }
+    .cl-api-banner button:hover { background: rgba(245,158,11,0.3); }
+    .cl-prompt-fallback { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 12px; }
+    .cl-prompt-fallback p { color: var(--text-muted); margin-bottom: 10px; line-height: 1.5; }
+    .cl-prompt-fallback button { background: var(--accent); border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; }
+    .cl-or-divider { text-align: center; font-size: 11px; color: var(--text-muted); margin: 6px 0; }
+    .cl-status { font-size: 12px; color: var(--accent2); margin-top: 4px; min-height: 18px; }
+
+    /* ── Settings modal extra ── */
+    .settings-saved-url { font-size: 11px; color: var(--accent2); margin-top: 4px; }
+
+    .add-btn {
+      background: var(--accent); border: none;
+      border-radius: 8px; padding: 8px 16px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 700; color: #fff;
+      cursor: pointer; white-space: nowrap; transition: opacity 0.15s;
+    }
+    .add-btn:hover { opacity: 0.85; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 200;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; width: 100%; max-width: 520px;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 24px 0;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .modal-close {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 22px; cursor: pointer; line-height: 1;
+      transition: color 0.15s; padding: 4px;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { padding: 20px 24px 24px; }
+    .form-row { margin-bottom: 16px; }
+    .form-row label {
+      display: block; font-size: 12px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .form-row input, .form-row select, .form-row textarea {
+      width: 100%; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; color: var(--text); font-size: 14px;
+      outline: none; transition: border-color 0.2s; font-family: inherit;
+    }
+    .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+      border-color: var(--accent);
+    }
+    .form-row textarea { resize: vertical; min-height: 72px; }
+    .form-row select option { background: var(--surface2); }
+    .form-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-actions {
+      display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;
+    }
+    .btn-cancel {
+      background: none; border: 1px solid var(--border);
+      border-radius: 8px; padding: 9px 18px;
+      color: var(--text-muted); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-cancel:hover { border-color: var(--text-muted); color: var(--text); }
+    .btn-submit {
+      background: var(--accent); border: none; border-radius: 8px;
+      padding: 9px 22px; color: #fff;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-submit:hover { opacity: 0.85; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .form-success {
+      text-align: center; padding: 20px 0 8px;
+      color: var(--accent2); font-size: 15px; font-weight: 600;
+    }
+    /* ═══════════════════════════════════════════════════════════════════════
+       RESPONSIVE — Mobile-first overhaul
+       Breakpoints: 900px (tablet), 640px (phone landscape), 480px (phone)
+    ════════════════════════════════════════════════════════════════════════ */
+
+    /* ── Default: mobile-tabs hidden on desktop ── */
+    .mobile-tabs { display: none; }
+
+    /* ── Table: always scrollable ── */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* ─────────── TABLET  (≤ 900px) ─────────── */
+    @media (max-width: 900px) {
+
+      /* Switch from header tabs → mobile tab row */
+      .tab-nav { display: none; }
+      .mobile-tabs {
+        display: flex;
+        padding: 10px 16px 0;
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+      }
+      .mobile-tabs::-webkit-scrollbar { display: none; }
+      .mobile-tabs .filter-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 13px;
+        padding: 8px 14px;
+        border-radius: 8px 8px 0 0;
+        border-bottom: none;
+      }
+      .mobile-tabs .filter-btn.active {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        border-bottom: 2px solid var(--accent);
+        color: var(--accent);
+      }
+
+      /* Cover letter: single column */
+      .cl-layout { grid-template-columns: 1fr; }
+
+      /* Modals: slide up as bottom sheet */
+      .modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+      }
+      .modal {
+        border-radius: 20px 20px 0 0;
+        max-width: 100%;
+        max-height: 92vh;
+      }
+
+      /* Filter group: horizontal scroll */
+      .filter-group {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+      }
+      .filter-group::-webkit-scrollbar { display: none; }
+      .filter-group .filter-btn { flex-shrink: 0; }
+    }
+
+    /* ─────────── PHONE LANDSCAPE  (≤ 640px) ─────────── */
+    @media (max-width: 640px) {
+
+      /* Header: tighten up */
+      header { padding: 0 14px; }
+      .header-inner { height: 56px; gap: 10px; }
+      .logo-icon { width: 30px; height: 30px; font-size: 15px; border-radius: 8px; }
+      .logo-text { font-size: 15px; }
+      .logo-sub  { display: none; }
+      .last-updated { display: none; }
+
+      /* Main content */
+      main { padding: 16px 12px 72px; }
+
+      /* Mobile tab row */
+      .mobile-tabs { padding: 8px 12px 0; }
+
+      /* Controls row: wrap, tighter spacing */
+      .controls {
+        gap: 8px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+      .search-wrap { min-width: 0; }
+
+      /* Stats strip: scrollable, tighter */
+      .stats-strip {
+        gap: 12px;
+        padding: 12px 14px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .stats-strip::-webkit-scrollbar { display: none; }
+      .stat-divider { min-width: 1px; }
+      .stat[style*="margin-left:auto"] { margin-left: 0 !important; }
+
+      /* Leads grid */
+      .grid { grid-template-columns: 1fr; gap: 10px; }
+
+      /* Job cards */
+      .card { padding: 16px; gap: 10px; }
+
+      /* Cover letter layout: tighter */
+      .cl-layout { padding: 14px 12px; gap: 12px; }
+      .cl-api-banner {
+        margin: 10px 12px 0;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 14px;
+      }
+      .cl-api-banner button { width: 100%; }
+
+      /* Applications table: min-width forces scroll */
+      table { min-width: 580px; }
+    }
+
+    /* ─────────── PHONE PORTRAIT  (≤ 480px) ─────────── */
+    @media (max-width: 480px) {
+
+      header { padding: 0 12px; }
+      .header-inner { height: 52px; gap: 8px; }
+      .logo-text { font-size: 14px; }
+      .logo-icon { width: 28px; height: 28px; font-size: 14px; }
+
+      /* Count in header gets cramped — shrink it */
+      .job-count { font-size: 11px; }
+
+      main { padding: 12px 10px 68px; }
+
+      /* Modal full-screen on tiny phones */
+      .modal { max-height: 96vh; }
+      .modal-body { padding: 16px 18px 20px; }
+      .modal-header { padding: 16px 18px 0; }
+
+      /* Form: stack two-column fields */
+      .form-cols { grid-template-columns: 1fr; }
+      .form-actions { flex-direction: column-reverse; }
+      .btn-cancel, .btn-submit { width: 100%; text-align: center; padding: 11px; }
+
+      /* Add-button label: hide on tiny screens */
+      .add-btn-label { display: none; }
+
+      /* Card footer: stack on tiny phones */
+      .card-footer { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .apply-btn { width: 100%; text-align: center; }
+
+      /* Cover letter: tighter sections */
+      .cl-section { padding: 14px; }
+      .cl-generate-btn { font-size: 14px; padding: 13px 20px; }
+    }
+
+    /* ── Sticky bottom nav on mobile (visual polish) ── */
+    @media (max-width: 900px) {
+      /* Add safe-area padding for phones with home bars */
+      body { padding-bottom: env(safe-area-inset-bottom, 0); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">💼</div>
+      <div>
+        <div class="logo-text">Antonio's Job Board</div>
+        <div class="logo-sub">Finance &amp; Banking · NYC &amp; Remote</div>
+      </div>
+    </div>
+
+    <nav class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('leads')" id="btn-leads">
+        🔍 Job Leads <span class="tab-pill" id="pill-leads">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('applications')" id="btn-applications">
+        📋 My Applications <span class="tab-pill" id="pill-apps">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('coverletter')" id="btn-coverletter">
+        ✍️ Cover Letter Generator
+      </button>
+    </nav>
+
+    <div class="header-meta" style="display:flex;align-items:center;gap:10px">
+      <div class="job-count" id="header-count">Loading…</div>
+      <div class="last-updated" id="last-updated"></div>
+      <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+    </div>
+  </div>
+</header>
+
+<!-- mobile tab row -->
+<div class="mobile-tabs">
+  <button class="filter-btn active" onclick="switchTab('leads')"        id="mbtn-leads">🔍 Job Leads</button>
+  <button class="filter-btn"        onclick="switchTab('applications')" id="mbtn-applications">📋 Applications</button>
+  <button class="filter-btn"        onclick="switchTab('coverletter')"  id="mbtn-coverletter">✍️ Cover Letter</button>
+</div>
+
+<!-- ═══════════════════════════════ MAIN ════════════════════════════════ -->
+<main>
+
+  <!-- ───────────── TAB 1: JOB LEADS ───────────── -->
+  <div id="panel-leads" class="tab-panel active">
+
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="leads-search" placeholder="Search roles, companies…" oninput="renderLeads()" />
+      </div>
+      <div class="filter-group">
+        <button class="filter-btn active" data-lcat="All"                onclick="setLeadFilter('All')">All</button>
+        <button class="filter-btn" data-lcat="Investment Banking"        onclick="setLeadFilter('Investment Banking')">IB</button>
+        <button class="filter-btn" data-lcat="Corporate Finance"         onclick="setLeadFilter('Corporate Finance')">Corp Finance</button>
+        <button class="filter-btn" data-lcat="FP&A"                      onclick="setLeadFilter('FP&A')">FP&amp;A</button>
+        <button class="filter-btn" data-lcat="Markets / S&T"             onclick="setLeadFilter('Markets / S&T')">Markets / S&T</button>
+        <button class="filter-btn" data-lcat="Advisory"                  onclick="setLeadFilter('Advisory')">Advisory</button>
+        <button class="filter-btn" data-lcat="Private Credit"            onclick="setLeadFilter('Private Credit')">Private Credit</button>
+        <button class="filter-btn" data-lcat="Asset Management"          onclick="setLeadFilter('Asset Management')">Asset Mgmt</button>
+      </div>
+      <select class="sort-select" id="leads-sort" onchange="renderLeads()">
+        <option value="date">Newest first</option>
+        <option value="fit">Best fit first</option>
+        <option value="company">Company A–Z</option>
+      </select>
+      <button class="icon-btn" id="leads-refresh-btn" onclick="refreshLeads()" title="Refresh leads">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat">
+        <div class="stat-dot" style="background:var(--strong)"></div>
+        <div><div class="stat-val" id="ls-strong">0</div><div class="stat-label">Strong Fit</div></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-dot" style="background:var(--good)"></div>
+        <div><div class="stat-val" id="ls-good">0</div><div class="stat-label">Good Fit</div></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-dot" style="background:var(--stretch)"></div>
+        <div><div class="stat-val" id="ls-stretch">0</div><div class="stat-label">Stretch</div></div>
+      </div>
+      <div class="stat" style="margin-left:auto">
+        <div><div class="stat-val" id="ls-new" style="color:var(--accent2)">0</div><div class="stat-label">Added today</div></div>
+      </div>
+    </div>
+
+    <div class="grid" id="leads-grid"></div>
+  </div>
+
+  <!-- ───────────── TAB 2: MY APPLICATIONS ───────────── -->
+  <div id="panel-applications" class="tab-panel">
+
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="apps-search" placeholder="Search company, role…" oninput="renderApps()" />
+      </div>
+      <div class="filter-group">
+        <button class="filter-btn active" data-scat="All"                         onclick="setAppFilter('All')">All</button>
+        <button class="filter-btn" data-scat="Submitted - Pending Response"       onclick="setAppFilter('Submitted - Pending Response')">⏳ Pending</button>
+        <button class="filter-btn" data-scat="Rejected"                           onclick="setAppFilter('Rejected')">✕ Rejected</button>
+        <button class="filter-btn" data-scat="Interview"                          onclick="setAppFilter('Interview')">🎯 Interview</button>
+        <button class="filter-btn" data-scat="Not Yet Applied"                    onclick="setAppFilter('Not Yet Applied')">📌 Not Applied</button>
+      </div>
+      <select class="sort-select" id="apps-sort" onchange="renderApps()">
+        <option value="date_added">Date Added ↓</option>
+        <option value="submitted">Date Submitted ↓</option>
+        <option value="company">Company A–Z</option>
+        <option value="status">Status</option>
+      </select>
+      <button class="icon-btn" id="apps-refresh-btn" onclick="refreshApps()" title="Refresh applications">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
+        </svg>
+      </button>
+      <button class="add-btn" onclick="openAddModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="add-btn-label">Add Application</span>
+      </button>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="stats-strip" id="apps-stats">
+      <div class="stat">
+        <div class="stat-dot" style="background:#8b90b0"></div>
+        <div><div class="stat-val" id="as-total">0</div><div class="stat-label">Total Tracked</div></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-dot" style="background:var(--status-pending)"></div>
+        <div><div class="stat-val" id="as-pending">0</div><div class="stat-label">Pending</div></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-dot" style="background:var(--status-rejected)"></div>
+        <div><div class="stat-val" id="as-rejected">0</div><div class="stat-label">Rejected</div></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-dot" style="background:var(--status-interview)"></div>
+        <div><div class="stat-val" id="as-interview">0</div><div class="stat-label">Interviews</div></div>
+      </div>
+      <div class="stat" style="margin-left:auto">
+        <div><div class="stat-val" id="as-rate" style="color:var(--accent2)">—</div><div class="stat-label">Response Rate</div></div>
+      </div>
+    </div>
+
+    <!-- Pipeline bar -->
+    <div class="pipeline-bar" id="pipeline-bar" title="Application pipeline breakdown"></div>
+
+    <!-- Table or error -->
+    <div id="apps-content">
+      <div class="loading-msg">Loading applications…</div>
+    </div>
+
+  </div>
+
+  <!-- ───────────── TAB 3: COVER LETTER GENERATOR ───────────── -->
+  <div id="panel-coverletter" class="tab-panel">
+
+    <!-- API key banner (shown when key not set) -->
+    <div id="cl-api-banner" class="cl-api-banner" style="display:none">
+      <span>⚡ Add your Anthropic API key to enable AI-powered generation.</span>
+      <button onclick="openSettings()">Configure in Settings →</button>
+    </div>
+
+    <div class="cl-layout">
+
+      <!-- LEFT: inputs -->
+      <div>
+        <!-- Resume section -->
+        <div class="cl-section">
+          <div class="cl-section-title">📄 Your Resume</div>
+          <div class="cl-upload-area" id="cl-resume-drop"
+               ondragover="event.preventDefault();this.classList.add('drag-over')"
+               ondragleave="this.classList.remove('drag-over')"
+               ondrop="handleResumeDrop(event)">
+            <div class="cl-upload-icon">📎</div>
+            <div>Drop PDF, DOCX, or TXT here</div>
+            <div class="cl-upload-sub">or</div>
+            <button onclick="event.stopPropagation();document.getElementById('cl-resume-file').click()">Browse File</button>
+            <input type="file" id="cl-resume-file" accept=".pdf,.docx,.txt,.doc" style="display:none" onchange="handleResumeFile(this)">
+          </div>
+          <div id="cl-resume-loaded" style="display:none;margin-bottom:8px">
+            <div class="cl-file-chip">
+              <span>📄</span>
+              <span id="cl-resume-name">resume.pdf</span>
+              <button onclick="clearResume()">×</button>
+            </div>
+          </div>
+          <div class="cl-or-divider">— or paste resume text below —</div>
+          <textarea id="cl-resume-text" class="cl-textarea" placeholder="Paste your resume here (or upload a file above)…" style="min-height:130px"></textarea>
+          <div class="cl-status" id="cl-resume-status"></div>
+        </div>
+
+        <!-- Job posting section -->
+        <div class="cl-section">
+          <div class="cl-section-title">🔗 Job Posting</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <input type="url" id="cl-job-url" class="cl-input" placeholder="https://jobs.company.com/… (any job board URL)" />
+            <button class="cl-fetch-btn" id="cl-fetch-btn" onclick="fetchJobPosting()">Fetch</button>
+          </div>
+          <textarea id="cl-job-text" class="cl-textarea" placeholder="Job description will appear here after fetching — or paste directly…" style="min-height:130px"></textarea>
+          <div class="cl-status" id="cl-fetch-status"></div>
+        </div>
+
+        <button class="cl-generate-btn" id="cl-generate-btn" onclick="generateCoverLetter()">✨ Generate Cover Letter</button>
+        <div class="cl-status" id="cl-gen-status" style="text-align:center;margin-top:8px"></div>
+      </div>
+
+      <!-- RIGHT: output -->
+      <div>
+        <div class="cl-output-panel">
+          <div class="cl-output-header">
+            <div class="cl-section-title" style="margin-bottom:0">📝 Generated Cover Letter</div>
+            <div class="cl-output-actions">
+              <button class="cl-copy-btn" onclick="copyCoverLetter()" id="cl-copy-btn">📋 Copy</button>
+            </div>
+          </div>
+          <textarea id="cl-output-text" class="cl-output-area" placeholder="Your tailored cover letter will appear here after clicking Generate…"></textarea>
+          <div id="cl-prompt-fallback" style="display:none" class="cl-prompt-fallback">
+            <p>No API key set — copy the structured prompt below and paste into <strong>Claude.ai</strong> to generate your cover letter:</p>
+            <button onclick="copyPromptForClaude()">📋 Copy Prompt for Claude.ai</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══════════════════════════════ SETTINGS MODAL ══════════════════════ -->
+<div class="modal-overlay" id="settings-modal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Settings</div>
+      <button class="modal-close" onclick="closeSettings()">×</button>
+    </div>
+    <div class="modal-body" style="padding:20px">
+      <div class="form-row" style="margin-bottom:16px">
+        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);display:block;margin-bottom:6px">
+          Apps Script URL
+          <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted)"> — saves applications to your Google Sheet</span>
+        </label>
+        <input type="url" id="s-script-url" placeholder="https://script.google.com/macros/s/…/exec"
+               style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text);outline:none" />
+        <div class="settings-saved-url" id="s-script-saved"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:20px">
+        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);display:block;margin-bottom:6px">
+          Anthropic API Key
+          <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted)"> — for Cover Letter Generator</span>
+        </label>
+        <input type="password" id="s-api-key" placeholder="sk-ant-api03-…"
+               style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text);outline:none" />
+        <div style="font-size:11px;color:var(--text-muted);margin-top:5px">
+          Stored only in your browser's localStorage. Never transmitted anywhere except the Anthropic API.
+          Get one at <a href="https://console.anthropic.com/keys" target="_blank" style="color:var(--accent)">console.anthropic.com</a>
+        </div>
+      </div>
+      <div class="form-actions" style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
+        <button class="btn-submit" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ADD APPLICATION MODAL ═══════════════ -->
+<div class="modal-overlay" id="add-modal" onclick="if(event.target===this)closeAddModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Application</div>
+      <button class="modal-close" onclick="closeAddModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-form-wrap">
+        <div class="form-cols">
+          <div class="form-row">
+            <label>Company *</label>
+            <input type="text" id="f-company" placeholder="e.g. Goldman Sachs" />
+          </div>
+          <div class="form-row">
+            <label>Role *</label>
+            <input type="text" id="f-role" placeholder="e.g. IB Analyst" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="Not Yet Applied">Not Yet Applied</option>
+            <option value="Submitted - Pending Response" selected>Submitted – Pending Response</option>
+            <option value="Interview">Interview</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="form-cols">
+          <div class="form-row">
+            <label>Date Added</label>
+            <input type="date" id="f-date-added" />
+          </div>
+          <div class="form-row">
+            <label>Date Submitted</label>
+            <input type="date" id="f-date-submitted" />
+          </div>
+        </div>
+        <div class="form-cols">
+          <div class="form-row">
+            <label>Salary / Range</label>
+            <input type="text" id="f-salary" placeholder="e.g. $110,000–$130,000" />
+          </div>
+          <div class="form-row">
+            <label>Job Link</label>
+            <input type="url" id="f-link" placeholder="https://…" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Notes</label>
+          <textarea id="f-notes" placeholder="e.g. IB / M&A — referred by alumni"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+          <button class="btn-submit" id="modal-submit-btn" onclick="submitNewApp()">Save Application</button>
+        </div>
+      </div>
+      <div id="modal-success" style="display:none">
+        <div class="form-success">✓ Application saved!</div>
+        <p style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:8px">
+          Hit refresh to see it in the table.
+        </p>
+        <div class="form-actions" style="justify-content:center;margin-top:16px">
+          <button class="btn-cancel" onclick="closeAddModal()">Close</button>
+          <button class="btn-submit" onclick="resetModal()">Add Another</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SCRIPTS ═════════════════════════════ -->
+<script>
+// ─── Config ────────────────────────────────────────────────────────────────
+// ↓↓↓  PASTE YOUR ANTHROPIC API KEY HERE — it will be used automatically  ↓↓↓
+const ANTHROPIC_KEY = '';
+// ↑↑↑  e.g.  const ANTHROPIC_KEY = 'sk-ant-api03-…';                      ↑↑↑
+
+const LEADS_URL = 'jobs.json';
+const SHEET_ID  = '19ZVJ25GOhUNN8QNf4ccf76wuu2rnBmtqinth0g4sVjc';
+const PUBLISHED_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRCDiLFAnZH2BisgpOieZx9WCoAJJ3mPAJKWd57tmwwRJT3uycz3EKR4mI3YK9sRFWTs6uGXJlFUd2r/pub?output=csv';
+// Try direct URLs first, then route through CORS proxy as fallback for local file:// access
+const SHEET_URLS = [
+  PUBLISHED_CSV,
+  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`,
+  `https://corsproxy.io/?${encodeURIComponent(PUBLISHED_CSV)}`,
+  `https://api.allorigins.win/raw?url=${encodeURIComponent(PUBLISHED_CSV)}`,
+];
+
+// ─── Inline jobs (updated by scheduled task — works when opened as a local file) ──
+window.INLINE_JOBS = [{"id":"goldman-sachs-ib-new-analyst-20260313","title":"Investment Banking New Analyst","company":"Goldman Sachs","category":"Investment Banking","location":"New York, NY","salary":"$110,000–$125,000","fit":"Strong Fit","description":"Goldman Sachs' New Analyst Program places top graduates directly on live M&A, ECM, and DCM deals across industry verticals. Antonio's 6 live deals at OCBC Securities—including M&A and IPO mandates totaling ~$260M—closely mirrors the analyst experience GS expects from Day One. Indonesian fluency is a genuine edge for GS's Asia-Pacific coverage teams.","link":"https://www.goldmansachs.com/careers/students/programs-and-internships/americas/new-analyst-program","date_added":"2026-03-13T10:00:00"},{"id":"jpmorgan-ib-fulltime-analyst-20260313","title":"Investment Banking Full-Time Analyst","company":"JPMorgan Chase","category":"Investment Banking","location":"New York, NY","salary":"$110,000–$120,000","fit":"Strong Fit","description":"JPMorgan's full-time IB Analyst role involves financial modeling, pitchbook creation, and supporting M&A and capital markets transactions from pitch to close. Antonio's hands-on deal execution at OCBC—building CIMs, pitchbooks, and trading comps—directly maps to JPMorgan's analyst responsibilities. Minimum preferred GPA of 3.2; Antonio's 3.74 is well above threshold.","link":"https://careers.jpmorgan.com/us/en/students/programs/investment-banking-fulltime-analyst","date_added":"2026-03-13T10:00:00"},{"id":"morgan-stanley-ib-analyst-20260313","title":"Investment Banking Analyst","company":"Morgan Stanley","category":"Investment Banking","location":"New York, NY","salary":"$110,000–$125,000","fit":"Strong Fit","description":"Morgan Stanley's IB Analyst program offers exposure to high-profile M&A, ECM, and DCM transactions across sector and regional coverage teams. Antonio's OCBC IB experience, fluency in Indonesian, and proficiency with Bloomberg Terminal and Capital IQ align well with Morgan Stanley's Asia-linked and global coverage requirements.","link":"https://www.morganstanley.com/people-opportunities/students-graduates","date_added":"2026-03-13T10:00:00"},{"id":"evercore-ib-analyst-20260313","title":"Investment Banking Analyst","company":"Evercore","category":"Investment Banking","location":"New York, NY","salary":"$110,000–$130,000","fit":"Strong Fit","description":"Evercore's elite boutique analyst role focuses on M&A advisory, restructuring, and capital markets across coverage and product groups. Antonio's direct M&A and IPO deal experience at OCBC—including pitchbook and CIM construction—mirrors Evercore analyst work, and his GPA of 3.74 meets the firm's high academic bar. Applications are reviewed on a rolling basis; apply promptly.","link":"https://evercore.tal.net/candidate/jobboard/vacancy/2/adv/","date_added":"2026-03-13T10:00:00"},{"id":"moelis-ib-analyst-20260313","title":"Investment Banking Analyst","company":"Moelis & Company","category":"Investment Banking","location":"New York, NY","salary":"$110,000–$130,000","fit":"Strong Fit","description":"Moelis & Company is an independent advisory firm known for M&A, restructuring, and capital raising across industry verticals. The analyst role involves financial modeling, valuation analysis, and transaction execution support on live deals—exactly the work Antonio performed on 6 active mandates at OCBC Securities. Formal application portal is open now; rolling interviews expected through June.","link":"https://moelis-careers.tal.net/candidate/jobboard/vacancy/2/adv/","date_added":"2026-03-13T10:00:00"},{"id":"centerview-partners-ib-analyst-20260313","title":"Investment Banking Analyst","company":"Centerview Partners","category":"Investment Banking","location":"New York, NY","salary":"$120,000–$135,000","fit":"Strong Fit","description":"Centerview Partners is one of the most prestigious independent M&A advisory boutiques globally. The analyst role provides direct exposure to complex, high-value M&A transactions alongside senior bankers. Antonio's M&A and IPO deal experience at OCBC, combined with his Magna Cum Laude GPA from Fordham, makes him a competitive candidate; Centerview accepts applications on a rolling basis.","link":"https://www.centerviewpartners.com/careers.aspx","date_added":"2026-03-13T10:00:00"},{"id":"houlihan-lokey-ib-analyst-20260313","title":"Financial Analyst – Investment Banking","company":"Houlihan Lokey","category":"Investment Banking","location":"New York, NY","salary":"$100,000–$120,000","fit":"Strong Fit","description":"Houlihan Lokey is a leading global investment bank specializing in M&A advisory, restructuring, and corporate finance. The full-time analyst role involves financial modeling, valuation work, and transaction execution across Consumer/FMCG, Healthcare, and Industrials—sectors aligning with Antonio's priority industries. His hands-on deal experience at OCBC gives him a practical edge over candidates without live deal exposure.","link":"https://hl.wd1.myworkdayjobs.com/Campus","date_added":"2026-03-13T10:00:00"},{"id":"citi-finance-fulltime-analyst-20260313","title":"Finance Full-Time Analyst (FP&A Rotational)","company":"Citi","category":"FP&A","location":"New York, NY","salary":"$85,000–$100,000","fit":"Good Fit","description":"Citi's two-year Financial Analyst Program rotates new graduates through FP&A, Controllers, Treasury, and business-aligned Finance units, building deep corporate finance skills. Antonio's Global Business Finance degree and Excel modeling experience provide a solid foundation; the program targets December 2025–June 2026 graduates, fitting his December 2025 graduation exactly.","link":"https://jobs.citi.com/job/new-york/functions-finance-full-time-analyst-new-york-usa-2026/287/85240789264","date_added":"2026-03-13T10:00:00"},{"id":"nomura-global-markets-analyst-20260313","title":"Global Markets Full-Time Analyst","company":"Nomura","category":"Markets / S&T","location":"New York, NY","salary":"$100,000–$115,000","fit":"Good Fit","description":"Nomura's Global Markets Full-Time Analyst Program places new graduates across equities, fixed income, and derivatives desks with direct exposure to trading and structuring. Antonio's Indonesian fluency and background in APAC deal-making is a genuine differentiator at a Japanese bank with significant Asia-Pacific coverage. Bloomberg Terminal proficiency aligns directly with markets desk requirements.","link":"https://nomuracampus.tal.net/vx/mobile-0/appcentre-ext/brand-4/candidate/so/pm/1/pl/1/opp/1285-2026-Global-Markets-Full-Time-Analyst-Program-Equity-Digital-Office/en-GB","date_added":"2026-03-13T10:00:00"},{"id":"mufg-ib-analyst-20260313","title":"Investment Banking Analyst","company":"MUFG","category":"Investment Banking","location":"New York, NY","salary":"$95,000–$115,000","fit":"Strong Fit","description":"MUFG's Investment Banking Analyst role supports M&A, ECM, and DCM transactions for corporate and institutional clients across the Americas and APAC. Antonio's OCBC deal experience—spanning Indonesian and broader Southeast Asian markets—combined with his Indonesian fluency is a standout advantage at a major Japanese bank with deep APAC connectivity. Role starts July 2026.","link":"https://prosple.com/graduate-employers/mufg-bank/jobs-internships/investment-banking-analyst-new-york","date_added":"2026-03-13T10:00:00"},{"id":"mizuho-analyst-program-20260313","title":"Full-Time Analyst – Finance","company":"Mizuho Americas","category":"Corporate Finance","location":"New York, NY","salary":"$90,000–$110,000","fit":"Good Fit","description":"Mizuho's three-year full-time Analyst Program places graduates in New York across corporate finance, capital markets, and advisory functions with strong APAC connectivity. Antonio's background in Southeast Asian deal-making at OCBC, combined with Indonesian fluency, positions him as a strong candidate for Mizuho's growing APAC-linked coverage platform in North America.","link":"https://www.mizuhogroup.com/americas/careers/campus-recruiting","date_added":"2026-03-13T10:00:00"},{"id":"raymond-james-ib-analyst-20260313","title":"Investment Banking Analyst I – Capital Structure Advisory","company":"Raymond James","category":"Investment Banking","location":"New York, NY","salary":"$95,000–$110,000","fit":"Good Fit","description":"Raymond James offers a full-time IB Analyst program with multi-product exposure across M&A, equity, debt, and restructuring. The firm's 14-office US platform offers meaningful deal flow for junior bankers, and the Capital Structure Advisory group focuses on leveraged finance and restructuring—a natural extension of Antonio's M&A and capital markets experience at OCBC.","link":"https://www.linkedin.com/jobs/view/raymond-james-2026-investment-banking-analyst-i-capital-structure-advisory-new-york-ny-application-via-wayup-at-wayup-4371269028","date_added":"2026-03-13T10:00:00"},{"id":"bny-mellon-analyst-program-20260313","title":"Analyst Program – Asset Management","company":"BNY Mellon","category":"Asset Management","location":"New York, NY","salary":"$80,000–$100,000","fit":"Good Fit","description":"BNY Mellon's 24-month rotational Analyst Program places graduates across investment management, asset servicing, and research functions. Antonio's FactSet and Bloomberg Terminal skills translate well into BNY's research-oriented roles, and experience supporting institutional investors at OCBC provides relevant context for asset management workflows.","link":"https://www.bny.com/corporate/global/en/careers/students/analyst-program.html","date_added":"2026-03-13T10:00:00"}];
+window.INLINE_LAST_UPDATED = "2026-03-13T01:05:58";
+
+// ─── State ─────────────────────────────────────────────────────────────────
+let ALL_LEADS = [];
+let ALL_APPS  = [];
+let activeLeadFilter = 'All';
+let activeAppFilter  = 'All';
+let activeTab = 'leads';
+
+// ─── Category colours ──────────────────────────────────────────────────────
+const CAT_COLORS = {
+  'Investment Banking': '#4f6ef7',
+  'Corporate Finance':  '#94a3b8',
+  'FP&A':               '#a78bfa',
+  'Markets / S&T':      '#22d3b0',
+  'Advisory':           '#f59e0b',
+  'Private Credit':     '#fb7185',
+  'Asset Management':   '#34d399',
+  'Corporate Dev':      '#60a5fa',
+};
+const catColor = c => CAT_COLORS[c] || '#8b90b0';
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+const initials = n => n.split(/[\s&]+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const isNew = d => d && (Date.now() - new Date(d)) < 86400000;
+const fmtDate = d => {
+  if (!d) return '—';
+  const dt = new Date(d);
+  if (isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+};
+
+function fitClass(f) {
+  if (!f) return '';
+  const l = f.toLowerCase();
+  if (l.includes('strong')) return 'fit-strong';
+  if (l.includes('good'))   return 'fit-good';
+  if (l.includes('stretch'))return 'fit-stretch';
+  return 'fit-good';
+}
+
+function statusInfo(s) {
+  if (!s) return { cls:'s-notyet', label:'Unknown' };
+  const l = s.toLowerCase();
+  if (l.includes('interview') || l.includes('offer'))
+    return { cls:'s-interview', label: s };
+  if (l.includes('reject'))
+    return { cls:'s-rejected',  label:'Rejected' };
+  if (l.includes('pending') || l.includes('submitted'))
+    return { cls:'s-pending',   label:'Pending' };
+  if (l.includes('not yet') || l.includes('not applied'))
+    return { cls:'s-notyet',    label:'Not Applied' };
+  return { cls:'s-notyet', label: s };
+}
+
+// ─── Tab switching ─────────────────────────────────────────────────────────
+function switchTab(tab) {
+  activeTab = tab;
+  ['leads','applications','coverletter'].forEach(t => {
+    document.getElementById(`panel-${t}`)?.classList.toggle('active', t === tab);
+    document.getElementById(`btn-${t}`)?.classList.toggle('active', t === tab);
+    document.getElementById(`mbtn-${t}`)?.classList.toggle('active', t === tab);
+  });
+  // Scroll active mobile tab button into view
+  document.getElementById(`mbtn-${tab}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  updateHeaderCount();
+  // Show API banner when entering cover letter tab with no key set
+  if (tab === 'coverletter') {
+    const hasKey = localStorage.getItem('anthropic_api_key') || ANTHROPIC_KEY;
+    const banner = document.getElementById('cl-api-banner');
+    if (banner) banner.style.display = hasKey ? 'none' : 'flex';
+  }
+}
+
+function updateHeaderCount() {
+  const el = document.getElementById('header-count');
+  if (activeTab === 'leads') {
+    el.textContent = `${ALL_LEADS.length} lead${ALL_LEADS.length !== 1 ? 's' : ''}`;
+    el.style.color = 'var(--accent2)';
+  } else {
+    const submitted = ALL_APPS.filter(a => {
+      const s = (a.status||'').toLowerCase();
+      return s.includes('submit') || s.includes('pending') || s.includes('reject') || s.includes('interview');
+    }).length;
+    el.textContent = `${submitted} submitted`;
+    el.style.color = 'var(--accent2)';
+  }
+}
+
+// ─── TAB 1: LEADS ──────────────────────────────────────────────────────────
+function setLeadFilter(cat) {
+  activeLeadFilter = cat;
+  document.querySelectorAll('[data-lcat]').forEach(b =>
+    b.classList.toggle('active', b.dataset.lcat === cat));
+  renderLeads();
+}
+
+function renderLeads() {
+  const q    = (document.getElementById('leads-search')?.value || '').toLowerCase();
+  const sort = document.getElementById('leads-sort')?.value || 'date';
+  const fitOrder = {'Strong Fit':0,'Good Fit':1,'Stretch':2};
+
+  let jobs = ALL_LEADS.filter(j => {
+    const matchCat = activeLeadFilter === 'All' || j.category === activeLeadFilter;
+    const matchQ   = !q || [j.title,j.company,j.description,j.location].join(' ').toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+
+  jobs = [...jobs].sort((a,b) => {
+    if (sort === 'fit')    return (fitOrder[a.fit]??9) - (fitOrder[b.fit]??9);
+    if (sort === 'company') return a.company.localeCompare(b.company);
+    return new Date(b.date_added||0) - new Date(a.date_added||0);
+  });
+
+  document.getElementById('ls-strong').textContent  = ALL_LEADS.filter(j=>(j.fit||'').includes('Strong')).length;
+  document.getElementById('ls-good').textContent    = ALL_LEADS.filter(j=>(j.fit||'').includes('Good')&&!(j.fit||'').includes('Strong')).length;
+  document.getElementById('ls-stretch').textContent = ALL_LEADS.filter(j=>(j.fit||'').includes('Stretch')).length;
+  document.getElementById('ls-new').textContent     = ALL_LEADS.filter(j=>isNew(j.date_added)).length;
+  document.getElementById('pill-leads').textContent = ALL_LEADS.length;
+
+  const grid = document.getElementById('leads-grid');
+  if (!jobs.length) {
+    grid.innerHTML = `<div class="empty">
+      <div class="empty-icon">📭</div>
+      <h2>${ALL_LEADS.length===0?'No leads yet':'No matches'}</h2>
+      <p>${ALL_LEADS.length===0
+        ? 'Your daily search runs every morning at 10 AM. New leads appear here automatically.'
+        : 'Try adjusting your filters or search query.'}</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = jobs.map(j => {
+    const color = catColor(j.category||'');
+    const nb = isNew(j.date_added) ? '<span class="new-badge">NEW</span>' : '';
+    return `<div class="card">
+      <div class="card-header">
+        <div style="display:flex;gap:12px;flex:1;min-width:0">
+          <div class="company-logo">${initials(j.company)}</div>
+          <div class="card-title-row">
+            <div class="card-title">${j.title}${nb}</div>
+            <div class="card-company">${j.company}</div>
+          </div>
+        </div>
+        ${j.fit?`<span class="fit-badge ${fitClass(j.fit)}">${j.fit}</span>`:''}
+      </div>
+      <div class="card-tags">
+        ${j.category?`<span class="tag" style="background:${color}22;color:${color}">${j.category}</span>`:''}
+        ${j.location?`<span class="tag" style="background:#2e325022;color:var(--text-muted)">📍 ${j.location}</span>`:''}
+      </div>
+      <div class="card-desc">${j.description||'No description available.'}</div>
+      <div class="card-footer">
+        <div class="card-meta">
+          ${j.salary?`<div class="card-salary">${j.salary}</div>`:''}
+          <div class="card-date">Added ${fmtDate(j.date_added)}</div>
+        </div>
+        ${j.link?`<a class="apply-btn" href="${j.link}" target="_blank" rel="noopener">Search & Apply →</a>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadLeads() {
+  // Always load inline data first — works when opened as a local file
+  ALL_LEADS = window.INLINE_JOBS || [];
+  if (window.INLINE_LAST_UPDATED) {
+    document.getElementById('last-updated').textContent =
+      'Leads updated ' + new Date(window.INLINE_LAST_UPDATED).toLocaleString('en-US',
+        {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+  }
+  renderLeads();
+  updateHeaderCount();
+
+  // Also try fetching jobs.json (works on GitHub Pages / local server — gets fresher data if available)
+  try {
+    const res  = await fetch(LEADS_URL + '?v=' + Date.now());
+    const data = await res.json();
+    if (data.jobs && data.jobs.length >= ALL_LEADS.length) {
+      ALL_LEADS = data.jobs;
+      if (data.last_updated) {
+        document.getElementById('last-updated').textContent =
+          'Leads updated ' + new Date(data.last_updated).toLocaleString('en-US',
+            {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
+      }
+      renderLeads();
+      updateHeaderCount();
+    }
+  } catch(e) { /* fine — inline data already loaded */ }
+}
+
+// ─── TAB 2: APPLICATIONS ───────────────────────────────────────────────────
+function setAppFilter(cat) {
+  activeAppFilter = cat;
+  document.querySelectorAll('[data-scat]').forEach(b =>
+    b.classList.toggle('active', b.dataset.scat === cat));
+  renderApps();
+}
+
+function renderApps() {
+  if (!ALL_APPS.length) return;
+
+  const q    = (document.getElementById('apps-search')?.value || '').toLowerCase();
+  const sort = document.getElementById('apps-sort')?.value || 'date_added';
+
+  // Stats
+  const submitted = ALL_APPS.filter(a=>{const s=(a.status||'').toLowerCase();return s.includes('submit')||s.includes('pending');});
+  const rejected  = ALL_APPS.filter(a=>(a.status||'').toLowerCase().includes('reject'));
+  const interview = ALL_APPS.filter(a=>{const s=(a.status||'').toLowerCase();return s.includes('interview')||s.includes('offer');});
+  const responded = rejected.length + interview.length;
+  const totalSub  = submitted.length + responded;
+  const rate      = totalSub > 0 ? Math.round((responded / totalSub) * 100) : 0;
+
+  document.getElementById('as-total').textContent    = ALL_APPS.length;
+  document.getElementById('as-pending').textContent  = submitted.length;
+  document.getElementById('as-rejected').textContent = rejected.length;
+  document.getElementById('as-interview').textContent= interview.length;
+  document.getElementById('as-rate').textContent     = totalSub ? rate + '%' : '—';
+  document.getElementById('pill-apps').textContent   = ALL_APPS.length;
+
+  // Pipeline bar
+  const bar = document.getElementById('pipeline-bar');
+  bar.innerHTML = [
+    {pct: submitted.length, color:'var(--status-pending)',  title:'Pending'},
+    {pct: rejected.length,  color:'var(--status-rejected)', title:'Rejected'},
+    {pct: interview.length, color:'var(--status-interview)',title:'Interview/Offer'},
+  ].filter(s=>s.pct>0).map(s =>
+    `<div class="pipe-seg" style="flex:${s.pct};background:${s.color}" title="${s.title}: ${s.pct}"></div>`
+  ).join('');
+
+  // Filter + sort
+  const statusOrder = {'interview':0,'offer':0,'s-interview':0,'pending':1,'submit':1,'reject':2,'not yet':3};
+  let apps = ALL_APPS.filter(a => {
+    const matchStatus = activeAppFilter === 'All' ||
+      (a.status || '').toLowerCase().includes(activeAppFilter.toLowerCase().split(' ')[0]);
+    const matchQ = !q || [a.company, a.role].join(' ').toLowerCase().includes(q);
+    return matchStatus && matchQ;
+  });
+
+  apps = [...apps].sort((a,b) => {
+    if (sort === 'company')   return a.company.localeCompare(b.company);
+    if (sort === 'submitted') return new Date(b.date_submitted||0) - new Date(a.date_submitted||0);
+    if (sort === 'status') {
+      const sa = Object.keys(statusOrder).find(k=>(a.status||'').toLowerCase().includes(k));
+      const sb = Object.keys(statusOrder).find(k=>(b.status||'').toLowerCase().includes(k));
+      return (statusOrder[sa]??9) - (statusOrder[sb]??9);
+    }
+    return new Date(b.date_added||0) - new Date(a.date_added||0);
+  });
+
+  const cont = document.getElementById('apps-content');
+  if (!apps.length) {
+    cont.innerHTML = `<div class="empty">
+      <div class="empty-icon">🔎</div>
+      <h2>No matches</h2>
+      <p>Try adjusting your filters or search query.</p>
+    </div>`;
+    return;
+  }
+
+  cont.innerHTML = `<div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th onclick="sortApps('company')">Company / Role <span class="sort-arrow">↕</span></th>
+        <th onclick="sortApps('status')">Status <span class="sort-arrow">↕</span></th>
+        <th onclick="sortApps('submitted')">Submitted <span class="sort-arrow">↕</span></th>
+        <th>Salary</th>
+        <th>Notes</th>
+        <th>Link</th>
+      </tr></thead>
+      <tbody>
+        ${apps.map(a => {
+          const si  = statusInfo(a.status);
+          const sal = a.salary && a.salary !== '—' && a.salary !== '-' ? a.salary : null;
+          return `<tr>
+            <td>
+              <div class="td-company">
+                <div class="tbl-logo">${initials(a.company)}</div>
+                <div>
+                  <div class="tbl-company-name">${a.company}</div>
+                  <div class="tbl-role">${a.role}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="status-badge ${si.cls}">
+              <span class="status-dot" style="background:currentColor"></span>${si.label}
+            </span></td>
+            <td class="tbl-date">${fmtDate(a.date_submitted) !== '—' ? fmtDate(a.date_submitted) : fmtDate(a.date_added)}</td>
+            <td class="tbl-salary">${sal || '<span style="color:var(--text-muted)">—</span>'}</td>
+            <td class="tbl-notes">${a.notes || '<span style="color:var(--border)">—</span>'}</td>
+            <td>${a.link && a.link !== '-' && a.link !== '—'
+              ? `<a class="view-btn" href="${a.link}" target="_blank" rel="noopener">View →</a>`
+              : '<span style="color:var(--border);font-size:12px">—</span>'}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+let appSortField = 'date_added';
+function sortApps(field) {
+  appSortField = field;
+  document.getElementById('apps-sort').value = field;
+  renderApps();
+}
+
+// CSV parser (handles quoted fields)
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split(/\r?\n/);
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; continue; }
+      if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; continue; }
+      cur += ch;
+    }
+    cols.push(cur.trim());
+    rows.push(cols);
+  }
+  return rows;
+}
+
+async function loadApps() {
+  const cont = document.getElementById('apps-content');
+
+  // Try each URL pattern in order until one works
+  let text = null;
+  let lastErr = null;
+  for (const url of SHEET_URLS) {
+    try {
+      const res = await fetch(url, { credentials: 'omit' });
+      if (!res.ok) { lastErr = `HTTP ${res.status} from ${url}`; continue; }
+      const t = await res.text();
+      // Reject if Google redirected us to an HTML login page
+      if (t.trim().startsWith('<!')) { lastErr = `HTML response (not CSV) from ${url}`; continue; }
+      if (!t.includes(',')) { lastErr = `Response doesn't look like CSV from ${url}`; continue; }
+      text = t;
+      break;
+    } catch(e) { lastErr = `${e.message} (${url})`; }
+  }
+
+  try {
+    if (!text) throw new Error(lastErr || 'All URL patterns failed');
+    const rows = parseCSV(text);
+    if (rows.length < 2) throw new Error('Empty sheet');
+
+    // Map header → index
+    const hdr = rows[0].map(h => h.toLowerCase().trim());
+    const col = name => hdr.findIndex(h => h.includes(name));
+    const iCompany   = col('company');
+    const iRole      = col('role');
+    const iDateAdded = col('date added');
+    const iStatus    = col('status');
+    const iSubmitted = col('date submitted');
+    const iLink      = col('link');
+    const iSalary    = col('salary');
+    const iRejection = col('rejection');
+    const iNotes     = col('notes');
+
+    ALL_APPS = rows.slice(1)
+      .filter(r => r[iCompany] && r[iCompany].toLowerCase() !== 'company name')
+      .map(r => ({
+        company:        r[iCompany]   || '',
+        role:           r[iRole]      || '',
+        date_added:     r[iDateAdded] || '',
+        status:         r[iStatus]    || '',
+        date_submitted: r[iSubmitted] || '',
+        link:           r[iLink]      || '',
+        salary:         r[iSalary]    || '',
+        rejection:      r[iRejection] || '',
+        notes:          r[iNotes]     || '',
+      }));
+
+    renderApps();
+    updateHeaderCount();
+
+  } catch(err) {
+    cont.innerHTML = `<div class="error-box">
+      <div style="font-size:36px;margin-bottom:12px">⚠️</div>
+      <h3>Could not load applications</h3>
+      <p>All connection attempts failed. Last error:</p>
+      <code style="font-size:11px;word-break:break-all;margin-top:8px">${err.message}</code>
+      <p style="margin-top:16px;font-size:12px;color:var(--text-muted)">
+        This usually means your browser is blocking cross-origin requests from a local file.<br>
+        <strong style="color:var(--text)">This will work automatically once you upload to GitHub Pages.</strong><br><br>
+        For now, try opening this file via a local server:<br>
+        Run <code style="font-size:11px">python -m http.server 8080</code> in the job-board folder,<br>
+        then visit <a href="http://localhost:8080" style="color:var(--accent)">http://localhost:8080</a>
+      </p>
+    </div>`;
+  }
+}
+
+// ─── Refresh buttons ───────────────────────────────────────────────────────
+function spinBtn(id, fn) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.classList.add('spinning');
+  btn.disabled = true;
+  const p = fn();
+  (p && p.finally ? p : Promise.resolve(p)).finally(() => {
+    btn.classList.remove('spinning');
+    btn.disabled = false;
+  });
+}
+
+function refreshLeads() {
+  spinBtn('leads-refresh-btn', searchLiveJobLeads);
+}
+
+function refreshApps() {
+  // Show loading state before fetch
+  document.getElementById('apps-content').innerHTML =
+    `<div class="loading-msg">↻ Refreshing applications…</div>`;
+  spinBtn('apps-refresh-btn', loadApps);
+}
+
+// ─── Modal ─────────────────────────────────────────────────────────────────
+function openAddModal() {
+  // Set today's date as default
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('f-date-added').value = today;
+  document.getElementById('f-date-submitted').value = today;
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function closeAddModal() {
+  document.getElementById('add-modal').classList.remove('open');
+  resetModal();
+}
+
+function resetModal() {
+  document.getElementById('modal-form-wrap').style.display = '';
+  document.getElementById('modal-success').style.display = 'none';
+  document.getElementById('f-company').value = '';
+  document.getElementById('f-role').value = '';
+  document.getElementById('f-salary').value = '';
+  document.getElementById('f-link').value = '';
+  document.getElementById('f-notes').value = '';
+  document.getElementById('modal-submit-btn').disabled = false;
+  document.getElementById('modal-submit-btn').textContent = 'Save Application';
+}
+
+async function submitNewApp() {
+  const company = document.getElementById('f-company').value.trim();
+  const role    = document.getElementById('f-role').value.trim();
+  if (!company || !role) {
+    document.getElementById('f-company').focus();
+    return alert('Company and Role are required.');
+  }
+
+  const payload = {
+    company,
+    role,
+    date_added:     document.getElementById('f-date-added').value     || new Date().toLocaleDateString('en-US'),
+    status:         document.getElementById('f-status').value,
+    date_submitted: document.getElementById('f-date-submitted').value || '',
+    link:           document.getElementById('f-link').value.trim()    || '',
+    salary:         document.getElementById('f-salary').value.trim()  || '—',
+    notes:          document.getElementById('f-notes').value.trim()   || '',
+  };
+
+  const scriptUrl = localStorage.getItem('apps_script_url') || '';
+
+  if (!scriptUrl) {
+    const go = confirm(
+      'No Apps Script URL is configured — this application will be saved locally only and will disappear on refresh.\n\n' +
+      'Click OK to save locally, or Cancel to configure your Apps Script URL in ⚙️ Settings first.'
+    );
+    if (!go) return;
+  }
+
+  const btn = document.getElementById('modal-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  if (scriptUrl) {
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      // no-cors: can't read response body, but absence of a network error means the request was sent
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = 'Save Application';
+      return alert('Could not reach your Apps Script URL.\n\nCheck the URL in ⚙️ Settings and try again.');
+    }
+  } else {
+    ALL_APPS.unshift({
+      company: payload.company, role: payload.role,
+      date_added: payload.date_added, status: payload.status,
+      date_submitted: payload.date_submitted, link: payload.link,
+      salary: payload.salary, notes: payload.notes,
+    });
+    renderApps();
+    updateHeaderCount();
+  }
+
+  document.getElementById('modal-form-wrap').style.display = 'none';
+  document.getElementById('modal-success').style.display = '';
+}
+
+// ─── Settings modal ────────────────────────────────────────────────────────
+function openSettings() {
+  const url = localStorage.getItem('apps_script_url') || '';
+  const key = localStorage.getItem('anthropic_api_key') || '';
+  document.getElementById('s-script-url').value = url;
+  document.getElementById('s-api-key').value = key;
+  const saved = document.getElementById('s-script-saved');
+  saved.textContent = url ? `✓ URL saved (ends in …${url.slice(-16)})` : '';
+  document.getElementById('settings-modal').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+
+function saveSettings() {
+  const url = document.getElementById('s-script-url').value.trim();
+  const key = document.getElementById('s-api-key').value.trim();
+  if (url) localStorage.setItem('apps_script_url', url);
+  else localStorage.removeItem('apps_script_url');
+  if (key) localStorage.setItem('anthropic_api_key', key);
+  else localStorage.removeItem('anthropic_api_key');
+  // Hide API banner if key is now set
+  const banner = document.getElementById('cl-api-banner');
+  if (banner) banner.style.display = (key || ANTHROPIC_KEY) ? 'none' : 'flex';
+  // Show confirmation then close
+  const btn = document.querySelector('#settings-modal .btn-submit');
+  if (btn) {
+    btn.textContent = '✓ Saved!';
+    setTimeout(() => { closeSettings(); btn.textContent = 'Save Settings'; }, 800);
+  } else {
+    closeSettings();
+  }
+}
+
+// ─── Cover Letter Generator ────────────────────────────────────────────────
+let _resumeRawText = '';
+let _clPromptCache  = '';
+
+// Resume file handling
+function handleResumeDrop(e) {
+  e.preventDefault();
+  document.getElementById('cl-resume-drop').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processResumeFile(file);
+}
+
+function handleResumeFile(input) {
+  const file = input.files[0];
+  if (file) processResumeFile(file);
+}
+
+async function processResumeFile(file) {
+  const status = document.getElementById('cl-resume-status');
+  status.textContent = 'Reading file…';
+  document.getElementById('cl-resume-name').textContent = file.name;
+  document.getElementById('cl-resume-loaded').style.display = '';
+
+  try {
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    if (ext === 'txt') {
+      _resumeRawText = await file.text();
+    } else if (ext === 'pdf') {
+      _resumeRawText = await extractPdfText(file);
+    } else if (ext === 'docx' || ext === 'doc') {
+      _resumeRawText = await extractDocxText(file);
+    } else {
+      _resumeRawText = await file.text();
+    }
+
+    document.getElementById('cl-resume-text').value = _resumeRawText;
+    status.textContent = `✓ Loaded ${Math.round(_resumeRawText.length / 1000)}k characters`;
+  } catch(e) {
+    status.textContent = `⚠ Could not parse file: ${e.message}. Paste your resume text below instead.`;
+    _resumeRawText = '';
+  }
+}
+
+function clearResume() {
+  _resumeRawText = '';
+  document.getElementById('cl-resume-text').value = '';
+  document.getElementById('cl-resume-loaded').style.display = 'none';
+  document.getElementById('cl-resume-file').value = '';
+  document.getElementById('cl-resume-status').textContent = '';
+}
+
+function getResumeText() {
+  return document.getElementById('cl-resume-text').value.trim() || _resumeRawText.trim();
+}
+
+// PDF text extraction using PDF.js
+async function extractPdfText(file) {
+  if (!window.pdfjsLib) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  const parts = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const tc   = await page.getTextContent();
+    parts.push(tc.items.map(it => it.str).join(' '));
+  }
+  return parts.join('\n\n');
+}
+
+// DOCX text extraction using mammoth.js
+async function extractDocxText(file) {
+  if (!window.mammoth) {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js');
+  }
+  const ab = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: ab });
+  return result.value;
+}
+
+// Lazy script loader
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+// Fetch job posting via CORS proxy
+async function fetchJobPosting() {
+  const url = document.getElementById('cl-job-url').value.trim();
+  if (!url) return alert('Please enter a job posting URL first.');
+
+  const btn    = document.getElementById('cl-fetch-btn');
+  const status = document.getElementById('cl-fetch-status');
+  btn.disabled = true; btn.textContent = 'Fetching…';
+  status.textContent = 'Fetching job posting…';
+
+  const proxies = [
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+  ];
+
+  let extracted = '';
+  for (const proxy of proxies) {
+    try {
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) continue;
+      let content = await res.text();
+      // allorigins /get wraps in JSON
+      try { const j = JSON.parse(content); if (j.contents) content = j.contents; } catch(e) {}
+      // Strip to text
+      const doc = new DOMParser().parseFromString(content, 'text/html');
+      doc.querySelectorAll('script,style,nav,header,footer,aside,[class*="cookie"],[class*="banner"],[aria-hidden="true"]')
+        .forEach(el => el.remove());
+      let text = (doc.body?.innerText || doc.documentElement?.innerText || '').replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+      if (text.length > 200) { extracted = text; break; }
+    } catch(e) { /* try next proxy */ }
+  }
+
+  if (extracted) {
+    const trimmed = extracted.length > 6000 ? extracted.slice(0, 6000) + '\n\n[content truncated…]' : extracted;
+    document.getElementById('cl-job-text').value = trimmed;
+    status.textContent = `✓ Fetched ${Math.round(trimmed.length / 1000)}k characters`;
+  } else {
+    status.textContent = '⚠ Could not fetch — paste the job description below manually.';
+  }
+
+  btn.disabled = false; btn.textContent = 'Fetch';
+}
+
+// Build the prompt
+function buildCoverLetterPrompt(resume, job, url) {
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  return `You are a professional cover letter writer. Generate a complete, properly formatted business cover letter as plain text.
+
+== CANDIDATE RESUME ==
+${resume}
+
+== JOB POSTING${url ? ` (${url})` : ''} ==
+${job || '[No job description provided — infer the role and company from any context available]'}
+
+== EXACT OUTPUT FORMAT (reproduce this structure precisely) ==
+
+[Candidate Full Name — as it appears in the resume]
+[City, State  |  Phone  |  Email — extracted from resume; omit any field not found]
+
+${today}
+
+[If a hiring manager name appears in the job posting, include it here; otherwise omit this line]
+[Company Name]
+
+Dear [Hiring Manager's name if found, otherwise: Hiring Manager]:
+
+[OPENING PARAGRAPH — 3–5 sentences]
+State the specific position you're applying for and where/how you found it. Open with a confident, specific connection between your most relevant experience and this role. Avoid starting with "I am writing to apply…" or "I am excited to apply…"
+
+[SECOND PARAGRAPH — 4–6 sentences]
+Build a direct bridge between the company's needs and your background. Expand on 1–2 concrete accomplishments from the resume — use specific numbers, deal sizes, or measurable results. Do NOT restate the resume line-by-line; instead, tell the story behind an achievement and what it demonstrates about your capabilities.
+
+[THIRD PARAGRAPH — 3–5 sentences]
+Show genuine, specific knowledge of this company — their reputation, culture, deal focus, client base, or market position. Connect your career goals and interests directly to what makes this firm distinct from competitors.
+
+[CLOSING PARAGRAPH — 3–4 sentences]
+Restate your enthusiasm for this specific role and summarize your fit in one confident sentence. Request an interview or note you will follow up. Thank the reader for their time and consideration.
+
+Sincerely,
+
+[Candidate Full Name]
+
+== WRITING RULES ==
+- Tone: professional and confident, not stiff or overly formal
+- Use real specifics from the resume (company names, deal volumes, titles, tools)
+- No bullet points, bold text, headers, or markdown anywhere — clean prose only
+- Each paragraph transitions naturally to the next
+- Body word count: 300–420 words
+- Output ONLY the finished cover letter — no preamble, labels, or commentary before or after`;
+}
+
+// Main generation function — uses shared callClaudeAPI helper
+async function generateCoverLetter() {
+  const resumeText = getResumeText();
+  const jobText    = document.getElementById('cl-job-text').value.trim();
+  const jobUrl     = document.getElementById('cl-job-url').value.trim();
+
+  if (!resumeText) { alert('Please provide your resume — upload a file or paste below.'); return; }
+  if (!jobText && !jobUrl) { alert('Please provide a job URL or paste the job description.'); return; }
+
+  const btn    = document.getElementById('cl-generate-btn');
+  const status = document.getElementById('cl-gen-status');
+  const out    = document.getElementById('cl-output-text');
+  const fb     = document.getElementById('cl-prompt-fallback');
+
+  btn.disabled = true; btn.textContent = '✨ Generating…';
+  status.textContent = 'Building your cover letter…';
+  out.value = ''; fb.style.display = 'none';
+
+  const prompt = buildCoverLetterPrompt(resumeText, jobText, jobUrl);
+  _clPromptCache = prompt;
+
+  try {
+    const data = await callClaudeAPI([{ role: 'user', content: prompt }], 1200);
+    out.value = data.content[0].text;
+    status.textContent = '✓ Cover letter generated';
+  } catch(e) {
+    if (e.message === 'NO_API_KEY') {
+      status.textContent = 'No API key — copy the prompt below to use in Claude.ai';
+    } else {
+      status.textContent = `⚠ ${e.message}`;
+    }
+    fb.style.display = '';
+  }
+
+  btn.disabled = false; btn.textContent = '✨ Generate Cover Letter';
+}
+
+function copyCoverLetter() {
+  const text = document.getElementById('cl-output-text').value;
+  if (!text) return alert('Nothing to copy yet — generate a cover letter first.');
+  navigator.clipboard.writeText(text)
+    .then(() => {
+      const btn = document.getElementById('cl-copy-btn');
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy', 1800);
+    })
+    .catch(() => alert('Copy failed — select and copy the text manually.'));
+}
+
+function copyPromptForClaude() {
+  if (!_clPromptCache) return alert('Generate first to build the prompt.');
+  navigator.clipboard.writeText(_clPromptCache)
+    .then(() => alert('Prompt copied! Paste it into Claude.ai (claude.ai/new) to generate your cover letter.'))
+    .catch(() => prompt('Copy this prompt and paste into Claude.ai:', _clPromptCache));
+}
+
+// ─── Shared Claude API caller (direct → CORS proxy fallback) ───────────────
+async function callClaudeAPI(messages, maxTokens = 1500) {
+  // Priority: Settings (localStorage) → hardcoded constant above → error
+  const apiKey = localStorage.getItem('anthropic_api_key') || ANTHROPIC_KEY || '';
+  if (!apiKey) throw new Error('NO_API_KEY');
+
+  const bodyObj = { model: 'claude-sonnet-4-6', max_tokens: maxTokens, messages };
+  const reqHeaders = {
+    'content-type': 'application/json',
+    'x-api-key': apiKey,
+    'anthropic-version': '2023-06-01',
+    'anthropic-dangerous-direct-browser-access': 'true',
+  };
+
+  const endpoints = [
+    'https://api.anthropic.com/v1/messages',
+    `https://corsproxy.io/?${encodeURIComponent('https://api.anthropic.com/v1/messages')}`,
+  ];
+
+  let lastErr;
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: reqHeaders,
+        body: JSON.stringify(bodyObj),
+        signal: AbortSignal.timeout(60000),
+      });
+
+      if (res.ok) return await res.json();
+
+      const errData = await res.json().catch(() => ({}));
+      const msg = errData?.error?.message || `HTTP ${res.status}`;
+      lastErr = new Error(msg);
+      // Auth errors: no point retrying with proxy
+      if (res.status === 401 || res.status === 403) throw lastErr;
+
+    } catch(e) {
+      if (e.name === 'AbortError') throw new Error('Request timed out — try again');
+      const isAuth = e.message?.includes('401') || e.message?.includes('403')
+                  || e.message?.toLowerCase().includes('invalid') && e.message?.toLowerCase().includes('key');
+      if (isAuth) throw e;
+      lastErr = e;
+      // loop continues to next endpoint
+    }
+  }
+  throw lastErr || new Error('API call failed');
+}
+
+// ─── Antonio's profile (used in all job-search prompts) ────────────────────
+const ANTONIO_PROFILE = `Antonio Sugirin — Finance New Graduate (entry-level, full-time)
+• Education: Fordham University GBA Finance, December 2025, 3.74 GPA, Magna Cum Laude
+• IB Experience: OCBC Securities (Singapore) — Investment Banking Summer Analyst
+  - 6 live deals totaling ~$260M: M&A mandates, ECM/IPO transactions
+  - Built CIMs, pitchbooks, trading comps, LBO/DCF valuation models
+• Other: Premium Technology Sales Analyst (prior)
+• Skills: Capital IQ, Bloomberg Terminal, FactSet, Power BI, Excel (financial modeling)
+• Languages: English (native), Indonesian (professional fluency)
+• Location: Jersey City, NJ — targeting NYC/Tri-State; open to other major US cities
+• Target roles: IB Analyst, Corporate Finance, FP&A, Markets/S&T, Advisory, Asset Management`;
+
+// ─── IB Firms Directory (190 firms across 13 categories) ───────────────────
+// Career page URLs scraped from the firm directory DOCX uploaded by user.
+// Used by fetchFromFirmCareerPages() to augment job search results.
+const IB_FIRMS_DIRECTORY = [
+  // ── Bulge Brackets ──────────────────────────────────────────────────────
+  { name:'Goldman Sachs',          careerUrl:'https://www.goldmansachs.com/careers/',                       category:'Bulge Bracket' },
+  { name:'JPMorgan Chase',         careerUrl:'https://careers.jpmorgan.com/us/en/home',                     category:'Bulge Bracket' },
+  { name:'Morgan Stanley',         careerUrl:'https://www.morganstanley.com/people-opportunities',          category:'Bulge Bracket' },
+  { name:'Bank of America',        careerUrl:'https://careers.bankofamerica.com/',                          category:'Bulge Bracket' },
+  { name:'Citigroup',              careerUrl:'https://jobs.citi.com/',                                      category:'Bulge Bracket' },
+  { name:'Barclays',               careerUrl:'https://home.barclays/careers/',                              category:'Bulge Bracket' },
+  { name:'Deutsche Bank',          careerUrl:'https://careers.db.com/',                                     category:'Bulge Bracket' },
+  { name:'UBS',                    careerUrl:'https://www.ubs.com/global/en/careers.html',                  category:'Bulge Bracket' },
+  { name:'Wells Fargo',            careerUrl:'https://www.wellsfargojobs.com/',                             category:'Bulge Bracket' },
+  { name:'Credit Suisse',          careerUrl:'https://www.credit-suisse.com/careers',                       category:'Bulge Bracket' },
+  // ── Elite Boutiques ─────────────────────────────────────────────────────
+  { name:'Evercore',               careerUrl:'https://www.evercore.com/careers/',                           category:'Elite Boutique' },
+  { name:'Lazard',                 careerUrl:'https://www.lazard.com/careers/',                             category:'Elite Boutique' },
+  { name:'Centerview Partners',    careerUrl:'https://www.centerviewpartners.com/careers',                  category:'Elite Boutique' },
+  { name:'PJT Partners',           careerUrl:'https://www.pjtpartners.com/careers/',                        category:'Elite Boutique' },
+  { name:'Moelis & Company',       careerUrl:'https://www.moelis.com/careers',                              category:'Elite Boutique' },
+  { name:'Perella Weinberg',       careerUrl:'https://www.pwpartners.com/careers/',                         category:'Elite Boutique' },
+  { name:'Guggenheim Securities',  careerUrl:'https://www.guggenheimpartners.com/firm/careers',             category:'Elite Boutique' },
+  { name:'Houlihan Lokey',         careerUrl:'https://www.hl.com/careers/',                                 category:'Elite Boutique' },
+  { name:'Rothschild & Co',        careerUrl:'https://www.rothschildandco.com/en/careers/',                 category:'Elite Boutique' },
+  { name:'Greenhill & Co',         careerUrl:'https://www.greenhill.com/careers',                           category:'Elite Boutique' },
+  { name:'Ducera Partners',        careerUrl:'https://www.ducerapartners.com/careers',                      category:'Elite Boutique' },
+  { name:'Allen & Company',        careerUrl:'https://www.allenandcompany.com/careers',                     category:'Elite Boutique' },
+  { name:'Zaoui & Co',             careerUrl:'https://www.zaoui.com/en/careers',                            category:'Elite Boutique' },
+  { name:'LionTree Advisors',      careerUrl:'https://www.liontree.com/careers/',                           category:'Elite Boutique' },
+  { name:'Qatalyst Partners',      careerUrl:'https://www.qatalystpartners.com/careers',                    category:'Elite Boutique' },
+  // ── Strong Regionals / IBABs ─────────────────────────────────────────────
+  { name:'RBC Capital Markets',    careerUrl:'https://jobs.rbc.com/',                                       category:'Strong Regional' },
+  { name:'TD Securities',          careerUrl:'https://jobs.td.com/',                                        category:'Strong Regional' },
+  { name:'BMO Capital Markets',    careerUrl:'https://jobs.bmo.com/',                                       category:'Strong Regional' },
+  { name:'HSBC',                   careerUrl:'https://www.hsbc.com/careers',                                category:'Strong Regional' },
+  { name:'BNP Paribas',            careerUrl:'https://group.bnpparibas/en/careers',                         category:'Strong Regional' },
+  { name:'Nomura',                 careerUrl:'https://www.nomura.com/careers/',                             category:'Strong Regional' },
+  { name:'Mizuho',                 careerUrl:'https://www.mizuhogroup.com/careers',                         category:'Strong Regional' },
+  { name:'Jefferies',              careerUrl:'https://www.jefferies.com/careers/',                          category:'Strong Regional' },
+  { name:'Macquarie Group',        careerUrl:'https://www.macquarie.com/us/en/careers.html',                category:'Strong Regional' },
+  { name:'Societe Generale',       careerUrl:'https://careers.societegenerale.com/',                        category:'Strong Regional' },
+  { name:'MUFG',                   careerUrl:'https://careers.mufgamericas.com/',                           category:'Strong Regional' },
+  { name:'Scotiabank',             careerUrl:'https://jobs.scotiabank.com/',                                 category:'Strong Regional' },
+  { name:'CIBC Capital Markets',   careerUrl:'https://cibccm.com/en/careers/',                              category:'Strong Regional' },
+  { name:'Natixis',                careerUrl:'https://careers.natixis.com/',                                 category:'Strong Regional' },
+  // ── Middle Market ────────────────────────────────────────────────────────
+  { name:'William Blair',          careerUrl:'https://www.williamblair.com/careers',                        category:'Middle Market' },
+  { name:'Robert W. Baird',        careerUrl:'https://www.rwbaird.com/careers',                             category:'Middle Market' },
+  { name:'Piper Sandler',          careerUrl:'https://www.pipersandler.com/careers',                        category:'Middle Market' },
+  { name:'Raymond James',          careerUrl:'https://raymondjames.jobs/',                                   category:'Middle Market' },
+  { name:'Stifel',                 careerUrl:'https://www.stifel.com/about/careers',                        category:'Middle Market' },
+  { name:'Oppenheimer',            careerUrl:'https://www.opco.com/about-us/careers.aspx',                  category:'Middle Market' },
+  { name:'Needham & Company',      careerUrl:'https://www.needhamco.com/about/careers/',                    category:'Middle Market' },
+  { name:'Imperial Capital',       careerUrl:'https://www.imperialcapital.com/careers/',                    category:'Middle Market' },
+  { name:'Canaccord Genuity',      careerUrl:'https://www.canaccordgenuity.com/en/careers.html',            category:'Middle Market' },
+  { name:'Cowen',                  careerUrl:'https://cowen.com/about/careers/',                            category:'Middle Market' },
+  { name:'JMP Securities',         careerUrl:'https://www.jmpsecurities.com/careers/',                     category:'Middle Market' },
+  { name:'Ladenburg Thalmann',     careerUrl:'https://www.ladenburg.com/careers',                           category:'Middle Market' },
+  { name:'Benchmark Company',      careerUrl:'https://www.benchmarkcompany.com/careers/',                   category:'Middle Market' },
+  { name:'Craig-Hallum Capital',   careerUrl:'https://www.craig-hallum.com/careers/',                       category:'Middle Market' },
+  { name:'D.A. Davidson',          careerUrl:'https://www.dadavidson.com/About-Us/Careers',                 category:'Middle Market' },
+  { name:'Dougherty & Company',    careerUrl:'https://www.doughertymarkets.com/careers/',                   category:'Middle Market' },
+  { name:'Janney Montgomery',      careerUrl:'https://www.janney.com/careers/',                             category:'Middle Market' },
+  { name:'Maxim Group',            careerUrl:'https://www.maximgrp.com/careers/',                           category:'Middle Market' },
+  { name:'National Securities',    careerUrl:'https://www.nationalsecurities.com/careers/',                 category:'Middle Market' },
+  { name:'Spartan Capital',        careerUrl:'https://www.spartancapital.com/careers/',                     category:'Middle Market' },
+  { name:'Wedbush Securities',     careerUrl:'https://www.wedbush.com/about/careers/',                      category:'Middle Market' },
+  { name:'Wintrust Capital Mkts',  careerUrl:'https://www.wintrust.com/about/careers.html',                 category:'Middle Market' },
+  { name:'Baird Capital',          careerUrl:'https://www.bairdcapital.com/careers/',                       category:'Middle Market' },
+  { name:'B. Riley Financial',     careerUrl:'https://www.brileyfin.com/careers/',                          category:'Middle Market' },
+  { name:'Aegis Capital',          careerUrl:'https://www.aegiscm.com/careers/',                            category:'Middle Market' },
+  { name:'Stephens Inc.',          careerUrl:'https://www.stephens.com/careers/',                           category:'Middle Market' },
+  { name:'Truist Securities',      careerUrl:'https://careers.truist.com/',                                 category:'Middle Market' },
+  // ── Boutique IB ──────────────────────────────────────────────────────────
+  { name:'Lincoln International',  careerUrl:'https://lincolninternational.com/careers/',                   category:'Boutique IB' },
+  { name:'Harris Williams',        careerUrl:'https://www.harriswilliams.com/careers',                      category:'Boutique IB' },
+  { name:'Duff & Phelps (Kroll)',  careerUrl:'https://www.kroll.com/en/careers',                            category:'Boutique IB' },
+  { name:'FT Partners',            careerUrl:'https://www.ftpartners.com/careers',                          category:'Boutique IB' },
+  { name:'Leerink Partners',       careerUrl:'https://www.leerink.com/careers/',                            category:'Boutique IB' },
+  { name:'SVB Securities',         careerUrl:'https://svbsecurities.com/careers/',                          category:'Boutique IB' },
+  { name:'Cantor Fitzgerald',      careerUrl:'https://www.cantor.com/careers/',                             category:'Boutique IB' },
+  { name:'Raymond James Boutique', careerUrl:'https://raymondjames.jobs/investment-banking',                category:'Boutique IB' },
+  { name:'Cascadia Capital',       careerUrl:'https://www.cascadiacapital.com/careers/',                    category:'Boutique IB' },
+  { name:'Meridian Capital Group', careerUrl:'https://www.meridiancapital.com/careers',                     category:'Boutique IB' },
+  { name:'Capstone Partners',      careerUrl:'https://www.capstonepartners.com/careers/',                   category:'Boutique IB' },
+  { name:'Edgeview Partners',      careerUrl:'https://www.edgeviewpartners.com/careers/',                   category:'Boutique IB' },
+  { name:'Prairie Capital',        careerUrl:'https://www.prairiecapital.com/careers/',                     category:'Boutique IB' },
+  { name:'Intrepid Investment Bankers', careerUrl:'https://www.intrepidib.com/careers/',                    category:'Boutique IB' },
+  { name:'Founders Advisors',      careerUrl:'https://foundersib.com/careers/',                             category:'Boutique IB' },
+  { name:'GCA Advisors',           careerUrl:'https://www.gcaadvisors.com/careers/',                        category:'Boutique IB' },
+  { name:'ACG Capital',            careerUrl:'https://acgcapital.com/careers/',                             category:'Boutique IB' },
+  { name:'The Tull Financial Group',careerUrl:'https://tullfinancialgroup.com/careers/',                    category:'Boutique IB' },
+  { name:'Sievert Larsen',         careerUrl:'https://www.sievertlarsen.com/careers/',                      category:'Boutique IB' },
+  { name:'Covington Capital',      careerUrl:'https://covingtoncapital.com/careers/',                       category:'Boutique IB' },
+  { name:'Merriman Capital',       careerUrl:'https://www.merrimancapital.com/careers/',                    category:'Boutique IB' },
+  { name:'Brown Gibbons Lang',     careerUrl:'https://www.bglco.com/careers/',                              category:'Boutique IB' },
+  { name:'Livingstone Partners',   careerUrl:'https://www.livingstonepartners.com/careers/',                category:'Boutique IB' },
+  { name:'Dresner Partners',       careerUrl:'https://www.dresnerpartners.com/careers/',                    category:'Boutique IB' },
+  { name:'Hogan Lovells (IBD)',    careerUrl:'https://www.hoganlovells.com/careers/',                       category:'Boutique IB' },
+  // ── Restructuring Specialists ────────────────────────────────────────────
+  { name:'AlixPartners',           careerUrl:'https://www.alixpartners.com/careers/',                       category:'Restructuring' },
+  { name:'Alvarez & Marsal',       careerUrl:'https://www.alvarezandmarsal.com/careers',                    category:'Restructuring' },
+  { name:'FTI Consulting',         careerUrl:'https://www.fticonsulting.com/careers/',                      category:'Restructuring' },
+  { name:'Ankura Consulting',      careerUrl:'https://ankura.com/careers/',                                  category:'Restructuring' },
+  { name:'Huron Consulting',       careerUrl:'https://www.huronconsultinggroup.com/careers/',               category:'Restructuring' },
+  { name:'Berkeley Research Group',careerUrl:'https://www.thinkbrg.com/careers/',                           category:'Restructuring' },
+  { name:'Zolfo Cooper',           careerUrl:'https://www.zolfocooper.com/careers/',                        category:'Restructuring' },
+  { name:'Miller Buckfire',        careerUrl:'https://www.millerbuckfire.com/careers/',                     category:'Restructuring' },
+  { name:'Houlihan Lokey Restruc.',careerUrl:'https://www.hl.com/financial-restructuring/',                 category:'Restructuring' },
+  { name:'PJT Restructuring',      careerUrl:'https://www.pjtpartners.com/restructuring/',                  category:'Restructuring' },
+  { name:'Evercore Restructuring', careerUrl:'https://www.evercore.com/restructuring/',                     category:'Restructuring' },
+  { name:'Lazard Restructuring',   careerUrl:'https://www.lazard.com/practices/restructuring/',             category:'Restructuring' },
+  // ── Tech & Growth Equity ─────────────────────────────────────────────────
+  { name:'Raine Group',            careerUrl:'https://www.raine.com/careers/',                              category:'Tech & Growth' },
+  { name:'Progress Partners',      careerUrl:'https://www.progresspartners.com/careers/',                   category:'Tech & Growth' },
+  { name:'Drake Star Partners',    careerUrl:'https://www.drakestar.com/careers/',                          category:'Tech & Growth' },
+  { name:'Pagemill Partners',      careerUrl:'https://www.pagemillpartners.com/careers/',                   category:'Tech & Growth' },
+  { name:'Broadhaven Capital',     careerUrl:'https://www.broadhaven.com/careers/',                         category:'Tech & Growth' },
+  { name:'Tidemark',               careerUrl:'https://www.tidemarkcap.com/careers/',                        category:'Tech & Growth' },
+  { name:'Vista Point Advisors',   careerUrl:'https://www.vistapointadvisors.com/careers/',                 category:'Tech & Growth' },
+  { name:'Union Square Advisors',  careerUrl:'https://www.unionsquareadvisors.com/careers/',                category:'Tech & Growth' },
+  { name:'AGC Partners',           careerUrl:'https://www.agcpartners.com/careers/',                        category:'Tech & Growth' },
+  { name:'Arma Partners',          careerUrl:'https://www.armapartners.com/careers/',                       category:'Tech & Growth' },
+  { name:'Architect Capital',      careerUrl:'https://www.architectcapital.com/careers/',                   category:'Tech & Growth' },
+  { name:'Woodside Capital',       careerUrl:'https://www.woodsidecap.com/careers/',                        category:'Tech & Growth' },
+  { name:'Niantic Advisors',       careerUrl:'https://www.nianticadvisors.com/careers/',                    category:'Tech & Growth' },
+  { name:'JMP Securities Tech',    careerUrl:'https://www.jmpsecurities.com/careers/',                      category:'Tech & Growth' },
+  // ── Healthcare ───────────────────────────────────────────────────────────
+  { name:'Piper Sandler Healthcare',careerUrl:'https://www.pipersandler.com/careers',                       category:'Healthcare IB' },
+  { name:'Leerink Healthcare',     careerUrl:'https://www.leerink.com/careers/',                            category:'Healthcare IB' },
+  { name:'Harris Williams Healthcare',careerUrl:'https://www.harriswilliams.com/careers',                   category:'Healthcare IB' },
+  { name:'MTS Health Partners',    careerUrl:'https://www.mtshealth.com/careers/',                          category:'Healthcare IB' },
+  { name:'Houlihan Lokey Healthcare',careerUrl:'https://www.hl.com/healthcare/',                            category:'Healthcare IB' },
+  { name:'Deerfield Management',   careerUrl:'https://www.deerfield.com/careers/',                          category:'Healthcare IB' },
+  { name:'Cain Brothers',          careerUrl:'https://www.cainbrothers.com/careers/',                       category:'Healthcare IB' },
+  { name:'BofA Healthcare',        careerUrl:'https://careers.bankofamerica.com/',                          category:'Healthcare IB' },
+  { name:'Lazard Healthcare',      careerUrl:'https://www.lazard.com/careers/',                             category:'Healthcare IB' },
+  { name:'Goldman Healthcare GS',  careerUrl:'https://www.goldmansachs.com/careers/',                       category:'Healthcare IB' },
+  { name:'Canaccord Healthcare',   careerUrl:'https://www.canaccordgenuity.com/en/careers.html',            category:'Healthcare IB' },
+  { name:'Stifel Healthcare',      careerUrl:'https://www.stifel.com/about/careers',                        category:'Healthcare IB' },
+  { name:'Raymond James Healthcare',careerUrl:'https://raymondjames.jobs/',                                  category:'Healthcare IB' },
+  // ── Real Estate ──────────────────────────────────────────────────────────
+  { name:'Eastdil Secured',        careerUrl:'https://www.eastdilsecured.com/careers/',                     category:'Real Estate IB' },
+  { name:'CBRE Investment Banking',careerUrl:'https://careers.cbre.com/',                                   category:'Real Estate IB' },
+  { name:'JLL Capital Markets',    careerUrl:'https://careers.jll.com/',                                    category:'Real Estate IB' },
+  { name:'Cushman & Wakefield IB', careerUrl:'https://careers.cushmanwakefield.com/',                       category:'Real Estate IB' },
+  { name:'Newmark Group',          careerUrl:'https://newmark.com/careers/',                                 category:'Real Estate IB' },
+  { name:'Berkadia',               careerUrl:'https://www.berkadia.com/careers/',                           category:'Real Estate IB' },
+  { name:'Mesa West Capital',      careerUrl:'https://www.mesawestcapital.com/careers/',                    category:'Real Estate IB' },
+  { name:'Ares Real Estate',       careerUrl:'https://www.aresmgmt.com/careers/',                           category:'Real Estate IB' },
+  { name:'Meridian Capital RE',    careerUrl:'https://www.meridiancapital.com/careers',                     category:'Real Estate IB' },
+  { name:'Walker & Dunlop',        careerUrl:'https://www.walkerdunlop.com/careers/',                       category:'Real Estate IB' },
+  // ── Energy ───────────────────────────────────────────────────────────────
+  { name:'Tudor Pickering & Holt', careerUrl:'https://tphlcc.com/careers/',                                 category:'Energy IB' },
+  { name:'Simmons Energy',         careerUrl:'https://www.simmonsenergy.com/careers/',                      category:'Energy IB' },
+  { name:'Opportune LLP',          careerUrl:'https://www.opportune.com/careers/',                          category:'Energy IB' },
+  { name:'Petrie Partners',        careerUrl:'https://petriepartners.com/careers/',                          category:'Energy IB' },
+  { name:'RBC Energy',             careerUrl:'https://jobs.rbc.com/',                                       category:'Energy IB' },
+  { name:'Goldman Sachs Energy',   careerUrl:'https://www.goldmansachs.com/careers/',                       category:'Energy IB' },
+  { name:'Lazard Energy',          careerUrl:'https://www.lazard.com/careers/',                             category:'Energy IB' },
+  { name:'Evercore Energy',        careerUrl:'https://www.evercore.com/careers/',                           category:'Energy IB' },
+  { name:'Guggenheim Energy',      careerUrl:'https://www.guggenheimpartners.com/firm/careers',             category:'Energy IB' },
+  // ── FIG Specialists ──────────────────────────────────────────────────────
+  { name:'KBW',                    careerUrl:'https://www.kbw.com/careers',                                 category:'FIG Specialist' },
+  { name:'Piper Sandler FIG',      careerUrl:'https://www.pipersandler.com/careers',                        category:'FIG Specialist' },
+  { name:'BTIG',                   careerUrl:'https://www.btig.com/careers/',                               category:'FIG Specialist' },
+  { name:'Janney FIG',             careerUrl:'https://www.janney.com/careers/',                             category:'FIG Specialist' },
+  { name:'SandlerO Neill (PS)',     careerUrl:'https://www.pipersandler.com/careers',                        category:'FIG Specialist' },
+  { name:'FBR & Co',               careerUrl:'https://careers.fbr.com/',                                    category:'FIG Specialist' },
+  { name:'Houlihan Lokey FIG',     careerUrl:'https://www.hl.com/careers/',                                 category:'FIG Specialist' },
+  { name:'Goldman Sachs FIG',      careerUrl:'https://www.goldmansachs.com/careers/',                       category:'FIG Specialist' },
+  // ── Government / Infrastructure ──────────────────────────────────────────
+  { name:'PFM Group',              careerUrl:'https://www.pfm.com/about/careers/',                          category:'Gov & Infra' },
+  { name:'Siebert Williams Shank', careerUrl:'https://www.swsfs.com/careers/',                              category:'Gov & Infra' },
+  { name:'Loop Capital',           careerUrl:'https://www.loopcapital.com/careers/',                        category:'Gov & Infra' },
+  { name:'Ramirez & Co',           careerUrl:'https://www.ramirezcapital.com/careers/',                     category:'Gov & Infra' },
+  { name:'Estrada Hinojosa',       careerUrl:'https://www.ehinojosa.com/careers/',                          category:'Gov & Infra' },
+  { name:'Macquarie Infrastructure',careerUrl:'https://www.macquarie.com/us/en/careers.html',               category:'Gov & Infra' },
+  { name:'Lazard Government',      careerUrl:'https://www.lazard.com/careers/',                             category:'Gov & Infra' },
+  { name:'Citigroup Public Finance',careerUrl:'https://jobs.citi.com/',                                     category:'Gov & Infra' },
+  { name:'RBC Government Finance', careerUrl:'https://jobs.rbc.com/',                                       category:'Gov & Infra' },
+  { name:'Wells Fargo Public Fin', careerUrl:'https://www.wellsfargojobs.com/',                             category:'Gov & Infra' },
+  // ── Diversity-Focused ────────────────────────────────────────────────────
+  { name:'Blaylock Van',           careerUrl:'https://www.blaylockvan.com/careers/',                        category:'Diversity-Focused' },
+  { name:'Cabrera Capital',        careerUrl:'https://www.cabreracapital.com/careers/',                     category:'Diversity-Focused' },
+  { name:'Apex Securities',        careerUrl:'https://www.apexsecurities.com/careers/',                     category:'Diversity-Focused' },
+  { name:'Penserra Securities',    careerUrl:'https://www.penserra.com/careers/',                           category:'Diversity-Focused' },
+  { name:'C.L. King & Associates', careerUrl:'https://www.clking.com/careers/',                             category:'Diversity-Focused' },
+  { name:'Mischler Financial',     careerUrl:'https://www.mischlerfinancial.com/careers/',                  category:'Diversity-Focused' },
+  { name:'Academy Securities',     careerUrl:'https://www.academysecurities.com/careers/',                  category:'Diversity-Focused' },
+  { name:'Guzman & Company',       careerUrl:'https://www.guzmanandco.com/careers/',                        category:'Diversity-Focused' },
+  { name:'Drexel Hamilton',        careerUrl:'https://drexelhamilton.com/careers/',                         category:'Diversity-Focused' },
+];
+
+// ─── Guaranteed-real job links via Indeed search URLs ──────────────────────
+// Claude hallucinates specific job IDs — instead we build a live Indeed search
+// URL for each company+role so the link always resolves to current openings.
+function buildJobSearchURL(company, title) {
+  const q = encodeURIComponent(`${company} ${title}`);
+  return `https://www.indeed.com/jobs?q=${q}&l=New+York%2C+NY&sort=date&fromage=60`;
+}
+
+function sanitizeLeadLinks(leads) {
+  return leads.map(lead => ({
+    ...lead,
+    link: buildJobSearchURL(lead.company || '', lead.title || ''),
+  }));
+}
+
+// ─── Fetch real listings: The Muse ─────────────────────────────────────────
+async function fetchFromTheMuse() {
+  const cats = ['Finance', 'Banking+%26+Financial+Services', 'Accounting+%26+Finance'];
+  const jobs = [];
+  const SIXTY_DAYS = 60 * 86400000;
+
+  for (const cat of cats) {
+    const base = `https://www.themuse.com/api/public/jobs?category=${cat}&level=Entry+Level&page=0&descending=true`;
+    for (const url of [base, `https://corsproxy.io/?${encodeURIComponent(base)}`]) {
+      try {
+        const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+        if (!res.ok) continue;
+        const data = await res.json().catch(() => null);
+        if (!data?.results) continue;
+
+        for (const j of data.results.slice(0, 10)) {
+          if (!j.publication_date) continue;
+          if (Date.now() - new Date(j.publication_date) > SIXTY_DAYS) continue;
+          jobs.push({
+            title: j.title || '',
+            company: j.company?.name || '',
+            location: j.locations?.[0]?.name || 'New York, NY',
+            // Use The Muse landing page if available, fall back to Indeed search
+            link: j.refs?.landing_page || buildJobSearchURL(j.company?.name || '', j.title || ''),
+            description: '',
+            date_added: j.publication_date,
+            _source: 'TheMuse',
+          });
+        }
+        break; // got data from this URL, skip proxy
+      } catch(e) { /* try next url */ }
+    }
+  }
+  return jobs;
+}
+
+// ─── Fetch real listings: Indeed RSS ───────────────────────────────────────
+async function fetchFromIndeedRSS() {
+  const queries = [
+    'investment+banking+analyst+entry+level',
+    'financial+analyst+new+grad+2026',
+    'fp%26a+analyst+entry+level+nyc',
+    'corporate+finance+analyst+new+grad',
+  ];
+  const jobs = [];
+  const THIRTY_DAYS = 30 * 86400000;
+
+  for (const q of queries.slice(0, 3)) {
+    const rss = `https://www.indeed.com/rss?q=${q}&l=New+York%2C+NY&sort=date&fromage=30`;
+    try {
+      const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(rss)}`,
+                              { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) continue;
+      const text = await res.text();
+      const xml  = new DOMParser().parseFromString(text, 'application/xml');
+      if (xml.querySelector('parsererror')) continue;
+
+      for (const item of Array.from(xml.querySelectorAll('item')).slice(0, 8)) {
+        const titleRaw = item.querySelector('title')?.textContent || '';
+        const link     = item.querySelector('link')?.textContent
+                      || item.querySelector('guid')?.textContent || '';
+        const pubDate  = item.querySelector('pubDate')?.textContent || '';
+        const descHtml = item.querySelector('description')?.textContent || '';
+
+        if (pubDate && Date.now() - new Date(pubDate) > THIRTY_DAYS) continue;
+
+        const parts   = titleRaw.split(' - ');
+        const role    = parts[0]?.trim() || titleRaw;
+        const company = parts[parts.length - 1]?.trim() || '';
+
+        const tmp = document.createElement('div');
+        tmp.innerHTML = descHtml;
+        const desc = (tmp.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 400);
+
+        if (role && company && link) {
+          jobs.push({
+            title: role, company, location: 'New York, NY', link, description: desc,
+            date_added: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+            _source: 'Indeed',
+          });
+        }
+      }
+    } catch(e) { /* Indeed may block proxy */ }
+  }
+  return jobs;
+}
+
+// ─── Fetch real listings: IB firm career pages ─────────────────────────────
+// Samples a random subset of firms each refresh and scrapes their career pages
+// via corsproxy.io. Results are additive — failures are silently skipped.
+async function fetchFromFirmCareerPages() {
+  // Keywords that suggest a finance/IB role title
+  const ROLE_KW = ['analyst', 'associate', 'banking', 'capital markets', 'advisory',
+                   'investment', 'corporate finance', 'financial', 'mergers', 'equity',
+                   'debt', 'credit', 'restructuring', 'fp&a', 'treasury', 'm&a'];
+  // Keywords that suggest entry-level (boosts ranking)
+  const ENTRY_KW = ['entry', 'new grad', 'junior', '2026', '2025', 'early career',
+                    'campus', 'university', 'summer analyst', 'full-time analyst',
+                    'analyst program', 'rotational'];
+  // Generic nav links we don't want
+  const SKIP_EXACT = new Set(['careers', 'jobs', 'apply now', 'apply', 'login', 'sign in',
+                               'home', 'about', 'contact', 'privacy', 'terms', 'back',
+                               'view all', 'see all', 'learn more', 'search jobs',
+                               'search', 'find jobs', 'all jobs', 'all openings']);
+
+  // Pick 8 random firms per refresh for variety + reasonable load time
+  const shuffled = [...IB_FIRMS_DIRECTORY].sort(() => Math.random() - 0.5);
+  const sample = shuffled.slice(0, 8);
+
+  const rawHits = [];
+
+  await Promise.allSettled(sample.map(async (firm) => {
+    try {
+      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(firm.careerUrl)}`;
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(7000) });
+      if (!res.ok) return;
+      const html = await res.text();
+      if (!html || html.length < 500) return;  // Likely a redirect or empty page
+
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+
+      // Look through all anchor tags for finance role text
+      const links = Array.from(doc.querySelectorAll('a[href]'));
+      let perFirmCount = 0;
+
+      for (const el of links) {
+        if (perFirmCount >= 6) break; // Cap at 6 per firm
+
+        const rawText = (el.textContent || el.getAttribute('aria-label') || '').trim();
+        const text    = rawText.replace(/\s+/g, ' ');
+        if (text.length < 8 || text.length > 130) continue;
+
+        const tLower = text.toLowerCase();
+        const hLower = (el.getAttribute('href') || '').toLowerCase();
+
+        if (SKIP_EXACT.has(tLower)) continue;
+
+        // Must contain at least one role keyword
+        if (!ROLE_KW.some(k => tLower.includes(k))) continue;
+
+        // Try to build an absolute href
+        let href = el.getAttribute('href') || '';
+        try {
+          href = href.startsWith('http')
+            ? href
+            : new URL(href, firm.careerUrl).href;
+        } catch { href = firm.careerUrl; }
+
+        const isEntry = ENTRY_KW.some(k => tLower.includes(k) || hLower.includes(k));
+
+        rawHits.push({
+          title:      text,
+          company:    firm.name,
+          location:   'New York, NY',
+          link:       href,
+          description:`Opening found on ${firm.name}'s careers page (${firm.category}).`,
+          date_added: new Date().toISOString(),
+          _source:    'CareerPage',
+          _isEntry:   isEntry,
+          _firmName:  firm.name,
+        });
+        perFirmCount++;
+      }
+
+      // If no <a> text matched, try scanning visible text for role patterns
+      // (catches pages that list roles as plain text or heading tags)
+      if (perFirmCount === 0) {
+        const headings = Array.from(doc.querySelectorAll('h1,h2,h3,h4,li,p'));
+        for (const el of headings) {
+          if (perFirmCount >= 3) break;
+          const text = (el.textContent || '').trim().replace(/\s+/g, ' ');
+          if (text.length < 10 || text.length > 120) continue;
+          const tLower = text.toLowerCase();
+          if (!ROLE_KW.some(k => tLower.includes(k))) continue;
+          if (SKIP_EXACT.has(tLower)) continue;
+          const isEntry = ENTRY_KW.some(k => tLower.includes(k));
+          rawHits.push({
+            title:      text,
+            company:    firm.name,
+            location:   'New York, NY',
+            link:       firm.careerUrl,
+            description:`Role found on ${firm.name}'s careers page (${firm.category}).`,
+            date_added: new Date().toISOString(),
+            _source:    'CareerPage',
+            _isEntry:   isEntry,
+            _firmName:  firm.name,
+          });
+          perFirmCount++;
+        }
+      }
+    } catch(e) { /* Career page unreachable or blocked — skip silently */ }
+  }));
+
+  // Deduplicate by title+company, prioritise entry-level hits
+  const seen = new Set();
+  return rawHits
+    .sort((a, b) => (b._isEntry ? 1 : 0) - (a._isEntry ? 1 : 0))
+    .filter(j => {
+      const key = `${j._firmName}|${j.title.toLowerCase().slice(0, 60)}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 20); // Hard cap on career-page results per search
+}
+
+// ─── Score real listings with Claude ───────────────────────────────────────
+async function evaluateJobsWithClaude(rawJobs) {
+  const prompt = `You are a finance career advisor evaluating job listings for:
+${ANTONIO_PROFILE}
+
+Here are raw job listings to evaluate (JSON):
+${JSON.stringify(rawJobs.slice(0, 20), null, 2)}
+
+Select the 6 best matches for Antonio. For each, return a JSON object:
+{
+  "id": "company-role-slug",
+  "title": "Role Title",
+  "company": "Company Name",
+  "category": "Investment Banking|Corporate Finance|FP&A|Markets / S&T|Advisory|Asset Management|Private Credit|Corporate Dev",
+  "location": "City, State",
+  "salary": "Estimated salary range or Not Listed",
+  "fit": "Strong Fit|Good Fit|Stretch",
+  "description": "2-3 sentences explaining specifically why this role fits Antonio (mention his OCBC experience, deal exposure, or specific skills where relevant)",
+  "link": "the original link",
+  "date_added": "${new Date().toISOString()}"
+}
+
+Return ONLY a valid JSON array, no other text.`;
+
+  const data = await callClaudeAPI([{ role: 'user', content: prompt }], 2500);
+  const text = data.content[0].text.trim();
+  const m = text.match(/\[[\s\S]*\]/);
+  if (!m) throw new Error('No JSON array in response');
+  return sanitizeLeadLinks(JSON.parse(m[0]));
+}
+
+// ─── Generate fresh leads from Claude's knowledge ──────────────────────────
+async function generateFreshLeadsWithClaude() {
+  const recentCos = JSON.parse(localStorage.getItem('recent_lead_cos') || '[]');
+  const avoidList = recentCos.length ? `\nDo NOT repeat these recently shown companies (use different ones): ${recentCos.slice(0,20).join(', ')}` : '';
+
+  const prompt = `You are a finance job search assistant generating curated leads for:
+${ANTONIO_PROFILE}
+
+Context: Today is ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}. Spring 2026 recruiting is active. Focus on companies that are CURRENTLY accepting applications or will open soon for 2026 analyst start dates.${avoidList}
+
+Generate 10 diverse job leads. Mix of:
+- Boutique/elite advisory firms (M&A, restructuring)
+- Mid-market and regional banks with IB practices
+- BB banks (non-IB divisions: markets, corporate banking, FP&A)
+- Fortune 500 corporate finance / FP&A rotational programs
+- Asset managers, private equity junior roles
+- Advisory / consulting with finance focus
+Include companies across different tiers — not just the top 5 banks.
+
+For each lead, return a JSON object with EXACTLY these fields:
+{
+  "id": "company-role-slug-unique",
+  "title": "Specific Role Title (e.g. Investment Banking Analyst, FP&A Associate)",
+  "company": "Exact Company Name",
+  "category": "Investment Banking|Corporate Finance|FP&A|Markets / S&T|Advisory|Asset Management|Private Credit|Corporate Dev",
+  "location": "City, State",
+  "salary": "$XX,000–$XX,000 (realistic estimate for this role/company tier)",
+  "fit": "Strong Fit|Good Fit|Stretch",
+  "description": "2-3 sentences explaining specifically why this role suits Antonio. Mention his OCBC deal experience ($260M, 6 live transactions), Indonesian fluency, or specific tools like Bloomberg/FactSet where genuinely relevant. Be concrete, not generic.",
+  "date_added": "${new Date().toISOString()}"
+}
+
+DO NOT include a "link" field — links will be generated automatically.
+Return ONLY a valid JSON array of exactly 10 objects. No preamble, no commentary.`;
+
+  const data = await callClaudeAPI([{ role: 'user', content: prompt }], 3500);
+  const text = data.content[0].text.trim();
+  const m = text.match(/\[[\s\S]*\]/);
+  if (!m) throw new Error('Invalid response format from AI');
+  const leads = JSON.parse(m[0]);
+
+  // Remember these companies for variety next time
+  const newCos = leads.map(j => j.company).filter(Boolean);
+  localStorage.setItem('recent_lead_cos', JSON.stringify([...new Set([...recentCos, ...newCos])].slice(0, 40)));
+
+  // Replace any hallucinated links with guaranteed-real Indeed search URLs
+  return sanitizeLeadLinks(leads);
+}
+
+// ─── Main job search orchestrator (called by Refresh on Job Leads tab) ──────
+async function searchLiveJobLeads() {
+  const grid   = document.getElementById('leads-grid');
+  const luEl   = document.getElementById('last-updated');
+  const apiKey = localStorage.getItem('anthropic_api_key') || '';
+
+  // No API key → prompt to configure
+  if (!apiKey) {
+    grid.innerHTML = `
+      <div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">⚙️</div>
+        <h2>API Key Required for Live Search</h2>
+        <p>Add your <strong>Anthropic API key</strong> in <strong>⚙️ Settings</strong> (top-right) to enable intelligent job searching on demand.</p>
+        <button class="apply-btn" style="margin-top:16px" onclick="openSettings()">Open Settings →</button>
+      </div>`;
+    return;
+  }
+
+  // Loading state
+  grid.innerHTML = `
+    <div style="grid-column:1/-1;text-align:center;padding:60px 20px">
+      <div style="font-size:36px;margin-bottom:14px">🔍</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px">Searching finance job boards…</div>
+      <div style="font-size:13px;color:var(--text-muted)">Scanning The Muse, Indeed, IB firm career pages, and curating leads for your profile</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px">This takes 15–30 seconds</div>
+    </div>`;
+
+  let jobs = [];
+  let sourceNote = '';
+
+  try {
+    // Parallel fetch from real job boards + IB firm career pages
+    const [museRes, indeedRes, careerPageRes] = await Promise.allSettled([
+      fetchFromTheMuse(),
+      fetchFromIndeedRSS(),
+      fetchFromFirmCareerPages(),
+    ]);
+
+    const careerPageJobs = careerPageRes.status === 'fulfilled' ? careerPageRes.value : [];
+
+    const realJobs = [
+      ...(museRes.status    === 'fulfilled' ? museRes.value    : []),
+      ...(indeedRes.status  === 'fulfilled' ? indeedRes.value  : []),
+      ...careerPageJobs,
+    ];
+
+    if (realJobs.length >= 4) {
+      // Enough real listings — score them + supplement with generated
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-muted);font-size:13px">
+        Found ${realJobs.length} listings — evaluating fit for your profile…</div>`;
+
+      const [scored, generated] = await Promise.allSettled([
+        evaluateJobsWithClaude(realJobs),
+        generateFreshLeadsWithClaude(),
+      ]);
+
+      const scoredJobs = scored.status === 'fulfilled' ? scored.value : [];
+      const genJobs    = generated.status === 'fulfilled' ? generated.value : [];
+
+      jobs = [...scoredJobs, ...genJobs.slice(0, Math.max(0, 10 - scoredJobs.length))];
+      const cpCount = careerPageJobs.length;
+      sourceNote = `${realJobs.length} live listings (incl. ${cpCount} from IB career pages) + AI-curated roles`;
+
+    } else {
+      // Not enough real listings — use Claude knowledge
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-muted);font-size:13px">
+        Curating leads for your profile with AI…</div>`;
+      jobs = await generateFreshLeadsWithClaude();
+      sourceNote = 'AI-curated for current recruiting season';
+    }
+
+  } catch(e) {
+    grid.innerHTML = `
+      <div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">⚠️</div>
+        <h2>Search failed</h2>
+        <p style="max-width:400px;margin:0 auto">${e.message}</p>
+        <button class="apply-btn" style="margin-top:16px" onclick="refreshLeads()">Try Again</button>
+      </div>`;
+    return;
+  }
+
+  if (!jobs || !jobs.length) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <div class="empty-icon">📭</div><h2>No leads found</h2>
+      <p>Try again — each refresh generates a different set.</p>
+      <button class="apply-btn" style="margin-top:16px" onclick="refreshLeads()">Try Again</button>
+    </div>`;
+    return;
+  }
+
+  // Assign unique IDs and date if missing
+  jobs = jobs.map((j, i) => ({
+    ...j,
+    id: j.id || `job-${Date.now()}-${i}`,
+    date_added: j.date_added || new Date().toISOString(),
+  }));
+
+  ALL_LEADS = jobs;
+  window.INLINE_JOBS = jobs;
+  window.INLINE_LAST_UPDATED = new Date().toISOString();
+  luEl.textContent = `Refreshed just now — ${sourceNote}`;
+
+  renderLeads();
+  updateHeaderCount();
+}
+
+// ─── Boot ──────────────────────────────────────────────────────────────────
+loadLeads();
+loadApps();
+</script>
+</body>
+</html>
