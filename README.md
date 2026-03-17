@@ -1,4 +1,4 @@
-# Antonio's Job Dashboard 💼
+# My Job Dashboard
 
 A personal, AI-powered job search dashboard built to simplify the three biggest friction points in a finance job hunt — finding leads, tracking applications, and writing cover letters.
 
