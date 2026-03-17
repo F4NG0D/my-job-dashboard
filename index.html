@@ -1349,6 +1349,7 @@ function statusInfo(s) {
 // ─── Tab switching ─────────────────────────────────────────────────────────
 function switchTab(tab) {
   activeTab = tab;
+  localStorage.setItem('active_tab', tab);
   ['leads','applications','coverletter'].forEach(t => {
     document.getElementById(`panel-${t}`)?.classList.toggle('active', t === tab);
     document.getElementById(`btn-${t}`)?.classList.toggle('active', t === tab);
@@ -3038,6 +3039,12 @@ function toggleTheme() {
   const btn = document.getElementById('theme-toggle-btn');
   if (btn) btn.textContent = saved === 'light' ? '☀️' : '🌙';
 })();
+
+// ─── Restore last active tab on page load ──────────────────────────────────
+const savedTab = localStorage.getItem('active_tab');
+if (savedTab && ['leads','applications','coverletter'].includes(savedTab)) {
+  switchTab(savedTab);
+}
 
 loadLeads();
 loadApps();
