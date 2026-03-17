@@ -1010,11 +1010,18 @@ const LEADS_URL = 'jobs.json';
 // ─── Supabase config ───────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://daouwljufwukhbrqfhoh.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhb3V3bGp1Znd1a2hicnFmaG9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MDAwODAsImV4cCI6MjA4OTE3NjA4MH0.HT_iiVEDdwoeogXnN_laDY4F8lyaUVaSUMRbFCB90rs';
+// GET requests (read)
 const SB_HEADERS = {
   'apikey':        SUPABASE_ANON,
   'Authorization': `Bearer ${SUPABASE_ANON}`,
   'Content-Type':  'application/json',
-  'Prefer':        'return=representation',
+};
+// POST requests (insert) — minimal avoids parsing response body with spaced column names
+const SB_POST_HEADERS = {
+  'apikey':        SUPABASE_ANON,
+  'Authorization': `Bearer ${SUPABASE_ANON}`,
+  'Content-Type':  'application/json',
+  'Prefer':        'return=minimal',
 };
 
 // ─── Inline jobs (updated by scheduled task — works when opened as a local file) ──
@@ -1459,37 +1466,27 @@ async function submitNewApp() {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/Applications%20Database`, {
       method:  'POST',
-      headers: SB_HEADERS,
+      headers: SB_POST_HEADERS,
       body:    JSON.stringify(payload),
     });
+
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status}`);
+      // Try to get error details, fall back to status code
+      let errMsg = `HTTP ${res.status}`;
+      try { const j = await res.json(); errMsg = j.message || j.error || errMsg; } catch {}
+      throw new Error(errMsg);
     }
-    const [inserted] = await res.json();
 
-    // Prepend to local state so UI updates instantly — no need to re-fetch
-    ALL_APPS.unshift({
-      id:             inserted?.id || '',
-      company,
-      role,
-      date_added:     payload['Date Added'],
-      status:         payload['Application Status'],
-      date_submitted: payload['Date Submitted'],
-      link:           payload['Link to Job Req'],
-      salary:         payload['Salary'],
-      notes:          payload['Notes'],
-    });
-    renderApps();
-    updateHeaderCount();
-
+    // Success — show confirmation, then reload fresh data from Supabase
     document.getElementById('modal-form-wrap').style.display = 'none';
     document.getElementById('modal-success').style.display = '';
+    await loadApps();
 
   } catch(e) {
+    console.error('submitNewApp error:', e);
     btn.disabled = false;
     btn.textContent = 'Save Application';
-    alert(`Failed to save: ${e.message}\n\nMake sure your Supabase RLS policy allows inserts.`);
+    alert(`Failed to save application:\n${e.message}\n\nCheck the browser console (F12) for more details.`);
   }
 }
 
