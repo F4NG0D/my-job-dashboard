@@ -952,6 +952,7 @@
       <div class="stat" id="as-level-stat">
         <div>
           <div class="stat-val" id="as-level" style="color:var(--stretch)">⚡ Lvl 0</div>
+          <div class="stat-label" id="as-level-title">Prospecting</div>
           <div class="level-xp-row">
             <div class="level-bar-wrap">
               <div class="level-bar-fill" id="as-level-fill" style="width:0%"></div>
@@ -1236,6 +1237,28 @@ const LEADS_URL = 'jobs.json';
 // ─── Supabase config ───────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://daouwljufwukhbrqfhoh.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhb3V3bGp1Znd1a2hicnFmaG9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MDAwODAsImV4cCI6MjA4OTE3NjA4MH0.HT_iiVEDdwoeogXnN_laDY4F8lyaUVaSUMRbFCB90rs';
+// ─── Gamification — XP weights per application status ───────────────────────
+const XP_PER_STATUS = {
+  'have not applied':             0,
+  'submitted - pending response': 1,
+  'rejected':                     1,   // you tried
+  'interviewing':                 3,
+  'offer extended - in progress': 10,
+};
+// Level thresholds — cumulative XP required to reach each level
+const LEVEL_THRESHOLDS = [
+  { xp:   0, title: 'Prospecting'       },
+  { xp:   5, title: 'Junior Analyst'    },
+  { xp:  15, title: 'Analyst'           },
+  { xp:  30, title: 'Senior Analyst'    },
+  { xp:  50, title: 'Associate'         },
+  { xp:  75, title: 'Senior Associate'  },
+  { xp: 105, title: 'Vice President'    },
+  { xp: 145, title: 'Director'          },
+  { xp: 190, title: 'Managing Director' },
+  { xp: 240, title: 'Partner'           },
+];
+
 // GET requests (read)
 const SB_HEADERS = {
   'apikey':        SUPABASE_ANON,
@@ -1510,7 +1533,7 @@ function renderApps() {
   document.getElementById('as-interview').textContent= interview.length;
   document.getElementById('as-rate').textContent     = totalSub ? rate + '%' : '—';
   document.getElementById('pill-apps').textContent   = ALL_APPS.length;
-  updateLevelBar(ALL_APPS.length);
+  updateLevelBar(ALL_APPS);
 
   // Pipeline bar
   const bar = document.getElementById('pipeline-bar');
@@ -1723,7 +1746,7 @@ async function submitNewApp() {
     return alert('Company and Role are required.');
   }
 
-  const prevCount = ALL_APPS.length; // snapshot before save
+  const prevXP = computeXP(ALL_APPS); // snapshot XP before save
 
   // Use exact Supabase column names matching the imported table
   const payload = {
@@ -1760,10 +1783,12 @@ async function submitNewApp() {
     document.getElementById('modal-success').style.display = '';
     await loadApps();
 
-    // Level-up animation — only fires when crossing a multiple of 10
-    const newCount = ALL_APPS.length;
-    if (newCount > 0 && newCount % 10 === 0 && newCount > prevCount) {
-      triggerLevelUpAnimation(Math.floor(newCount / 10));
+    // Level-up animation — fires when the new app pushes us into a higher level
+    const newXP       = computeXP(ALL_APPS);
+    const prevLvl     = getLevelInfo(prevXP).level;
+    const newLvlInfo  = getLevelInfo(newXP);
+    if (newLvlInfo.level > prevLvl) {
+      triggerLevelUpAnimation(newLvlInfo.level, newLvlInfo.title, newLvlInfo.xpIntoLevel, newLvlInfo.xpForNext);
     }
 
   } catch(e) {
@@ -1970,7 +1995,7 @@ function renderAppsStats() {
   document.getElementById('as-interview').textContent = interview.length;
   document.getElementById('as-rate').textContent      = totalSub ? rate + '%' : '—';
   document.getElementById('pill-apps').textContent    = ALL_APPS.length;
-  updateLevelBar(ALL_APPS.length);
+  updateLevelBar(ALL_APPS);
 
   const bar = document.getElementById('pipeline-bar');
   if (bar) {
@@ -1985,26 +2010,48 @@ function renderAppsStats() {
 }
 
 // ─── Level bar ─────────────────────────────────────────────────────────────
-function updateLevelBar(total) {
-  const level = Math.floor(total / 10);
-  const xp    = total % 10;
-  const pct   = (xp / 10) * 100;
-  const lvlEl  = document.getElementById('as-level');
-  const fillEl = document.getElementById('as-level-fill');
-  const xpEl   = document.getElementById('as-level-xp');
-  if (lvlEl)  lvlEl.textContent       = `⚡ Lvl ${level}`;
-  if (fillEl) fillEl.style.width      = pct + '%';
-  if (xpEl)   xpEl.textContent        = `${xp} / 10`;
+function computeXP(apps) {
+  return apps.reduce((sum, a) => {
+    const s = (a.status || '').toLowerCase().trim();
+    return sum + (XP_PER_STATUS[s] ?? 0);
+  }, 0);
 }
 
-function triggerLevelUpAnimation(newLevel) {
+function getLevelInfo(totalXP) {
+  let level = 0;
+  while (level + 1 < LEVEL_THRESHOLDS.length && totalXP >= LEVEL_THRESHOLDS[level + 1].xp) {
+    level++;
+  }
+  const current      = LEVEL_THRESHOLDS[level];
+  const next         = LEVEL_THRESHOLDS[level + 1];
+  const xpIntoLevel  = totalXP - current.xp;
+  const xpForNext    = next ? next.xp - current.xp : xpIntoLevel || 1;
+  const pct          = next ? Math.min(100, (xpIntoLevel / xpForNext) * 100) : 100;
+  return { level, title: current.title, xpIntoLevel, xpForNext, pct };
+}
+
+function updateLevelBar(apps) {
+  const totalXP = computeXP(apps);
+  const { level, title, xpIntoLevel, xpForNext, pct } = getLevelInfo(totalXP);
+  const lvlEl   = document.getElementById('as-level');
+  const fillEl  = document.getElementById('as-level-fill');
+  const xpEl    = document.getElementById('as-level-xp');
+  const titleEl = document.getElementById('as-level-title');
+  if (lvlEl)   lvlEl.textContent  = `⚡ Lvl ${level}`;
+  if (fillEl)  fillEl.style.width = pct + '%';
+  if (xpEl)    xpEl.textContent   = `${xpIntoLevel} / ${xpForNext} XP`;
+  if (titleEl) titleEl.textContent = title;
+}
+
+function triggerLevelUpAnimation(newLevel, newTitle, xpIntoLevel, xpForNext) {
   const fillEl  = document.getElementById('as-level-fill');
   const lvlEl   = document.getElementById('as-level');
   const xpEl    = document.getElementById('as-level-xp');
+  const titleEl = document.getElementById('as-level-title');
   const strip   = document.getElementById('apps-stats'); // full stats strip
   if (!fillEl || !strip) return;
 
-  // Step 1: snap small XP bar to 100% instantly
+  // Step 1: snap XP bar to 100% instantly
   fillEl.style.transition = 'none';
   fillEl.style.width = '100%';
 
@@ -2013,13 +2060,14 @@ function triggerLevelUpAnimation(newLevel) {
   overlay.className = 'level-sweep-overlay';
   strip.appendChild(overlay);
 
-  // Step 3: after sweep completes, tick up level + reset XP bar
+  // Step 3: after sweep completes, apply correct new-level state
   setTimeout(() => {
     overlay.remove();
-    if (lvlEl) lvlEl.textContent = `⚡ Lvl ${newLevel}`;
-    if (xpEl)  xpEl.textContent  = '0 / 10';
+    if (lvlEl)   lvlEl.textContent   = `⚡ Lvl ${newLevel}`;
+    if (titleEl) titleEl.textContent = newTitle;
+    if (xpEl)    xpEl.textContent    = `${xpIntoLevel} / ${xpForNext} XP`;
     fillEl.style.transition = 'none';
-    fillEl.style.width = '0%';
+    fillEl.style.width = ((xpIntoLevel / xpForNext) * 100) + '%';
     // re-enable smooth transition after reset settles
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
