@@ -1102,17 +1102,17 @@
       <div id="modal-form-wrap">
 
         <!-- ── Auto-fill from job URL ── -->
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:8px">Auto-fill from job link</div>
+        <div class="form-row">
+          <label>Job URL — auto-fill details</label>
           <div style="display:flex;gap:6px">
             <input type="url" id="f-fetch-url" placeholder="Paste job URL to auto-fill company, role & salary…"
-                   style="flex:1" onpaste="setTimeout(fetchAndFillJobDetails,60)" />
+                   style="flex:1;min-width:0" onpaste="setTimeout(fetchAndFillJobDetails,60)" />
             <button type="button" onclick="pasteAndFetchJobUrl()"
-                    style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:0 14px;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">
+                    style="background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:0 12px;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit">
               📋 Paste
             </button>
           </div>
-          <div id="f-fetch-status" style="font-size:12px;margin-top:6px;min-height:16px"></div>
+          <div id="f-fetch-status" style="font-size:12px;margin-top:5px;min-height:14px"></div>
         </div>
 
         <div class="form-cols">
@@ -1787,121 +1787,119 @@ async function pasteAndFetchJobUrl() {
   }
 }
 
-function detectATSFromUrl(urlStr) {
+function parseGreenhouseUrl(urlStr) {
   try {
     const u = new URL(urlStr);
-    // Direct Greenhouse board URL
     if (u.hostname === 'boards.greenhouse.io' || u.hostname === 'job-boards.greenhouse.io') {
-      const parts = u.pathname.split('/').filter(Boolean);
-      if (parts.length >= 3 && parts[1] === 'jobs')
-        return { ats: 'greenhouse', slug: parts[0], jobId: parts[2] };
+      const p = u.pathname.split('/').filter(Boolean);
+      if (p.length >= 3 && p[1] === 'jobs') return { slug: p[0], jobId: p[2] };
     }
-    // Greenhouse embedded via ?gh_jid= param
     const ghJid = u.searchParams.get('gh_jid');
-    if (ghJid) {
-      const slug = u.hostname.replace(/^www\./, '').split('.')[0];
-      return { ats: 'greenhouse', slug, jobId: ghJid };
-    }
-    // Direct Lever URL
+    if (ghJid) return { slug: u.hostname.replace(/^www\./, '').split('.')[0], jobId: ghJid };
+    return null;
+  } catch { return null; }
+}
+
+function parseLeverUrl(urlStr) {
+  try {
+    const u = new URL(urlStr);
     if (u.hostname === 'jobs.lever.co') {
-      const parts = u.pathname.split('/').filter(Boolean);
-      if (parts.length >= 2) return { ats: 'lever', slug: parts[0], jobId: parts[1] };
+      const p = u.pathname.split('/').filter(Boolean);
+      if (p.length >= 2) return { slug: p[0], jobId: p[1] };
     }
     return null;
   } catch { return null; }
 }
 
+function fillFields(company, role, salary, link) {
+  const set = (id, val) => { if (val && String(val).trim()) document.getElementById(id).value = String(val).trim(); };
+  set('f-company', company);
+  set('f-role', role);
+  set('f-salary', salary);
+  set('f-link', link);
+}
+
+function setFetchStatus(el, msg, color) {
+  el.style.color = color || 'var(--strong)';
+  el.textContent = msg;
+  if (color !== 'var(--stretch)') setTimeout(() => { el.textContent = ''; }, 4000);
+}
+
 async function fetchAndFillJobDetails() {
-  const url = document.getElementById('f-fetch-url').value.trim();
+  const url    = document.getElementById('f-fetch-url').value.trim();
+  const status = document.getElementById('f-fetch-status');
   if (!url || !url.startsWith('http')) return;
 
-  const status = document.getElementById('f-fetch-status');
   status.style.color = 'var(--text-muted)';
   status.textContent = 'Fetching job details…';
 
   try {
-    const ats = detectATSFromUrl(url);
-
-    // ── Greenhouse: call API directly, no scraping needed ──
-    if (ats?.ats === 'greenhouse') {
+    // ── 1. Greenhouse API (exact data, no scraping) ──
+    const gh = parseGreenhouseUrl(url);
+    if (gh) {
       const [jobRes, boardRes] = await Promise.all([
-        fetch(`https://boards-api.greenhouse.io/v1/boards/${ats.slug}/jobs/${ats.jobId}`),
-        fetch(`https://boards-api.greenhouse.io/v1/boards/${ats.slug}`),
+        fetch(`https://boards-api.greenhouse.io/v1/boards/${gh.slug}/jobs/${gh.jobId}`),
+        fetch(`https://boards-api.greenhouse.io/v1/boards/${gh.slug}`),
       ]);
-      if (!jobRes.ok) throw new Error('Job not found on Greenhouse — fill in manually');
+      if (!jobRes.ok) throw new Error('Greenhouse job not found — fill in manually');
       const job   = await jobRes.json();
       const board = boardRes.ok ? await boardRes.json() : null;
-      if (job.title)   document.getElementById('f-role').value    = job.title;
-      if (board?.name) document.getElementById('f-company').value = board.name;
-      document.getElementById('f-link').value = url;
-      status.style.color = 'var(--strong)';
-      status.textContent = '✓ Company & role filled in';
-      setTimeout(() => { status.textContent = ''; }, 4000);
-      return;
+      fillFields(board?.name, job.title, null, url);
+      return setFetchStatus(status, '✓ Company & role filled in');
     }
 
-    // ── Lever: call API directly ──
-    if (ats?.ats === 'lever') {
-      const jobRes = await fetch(`https://api.lever.co/v0/postings/${ats.slug}/${ats.jobId}?mode=json`);
-      if (!jobRes.ok) throw new Error('Job not found on Lever — fill in manually');
-      const job = await jobRes.json();
-      const companyName = ats.slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      if (job.text) document.getElementById('f-role').value    = job.text;
-      document.getElementById('f-company').value = companyName;
-      document.getElementById('f-link').value = url;
-      status.style.color = 'var(--strong)';
-      status.textContent = '✓ Company & role filled in';
-      setTimeout(() => { status.textContent = ''; }, 4000);
-      return;
+    // ── 2. Lever API (exact data, no scraping) ──
+    const lv = parseLeverUrl(url);
+    if (lv) {
+      const res = await fetch(`https://api.lever.co/v0/postings/${lv.slug}/${lv.jobId}?mode=json`);
+      if (!res.ok) throw new Error('Lever job not found — fill in manually');
+      const job     = await res.json();
+      const company = lv.slug.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+      fillFields(company, job.text, null, url);
+      return setFetchStatus(status, '✓ Company & role filled in');
     }
 
-    // ── Fallback: scrape via corsproxy + Claude ──
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(12000) });
+    // ── 3. Scrape via corsproxy → Claude ──
+    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(12000) });
     if (!res.ok) throw new Error(`Could not load page (${res.status}) — fill in manually`);
 
     const html = await res.text();
-    const tmp = document.createElement('div');
+    const tmp  = document.createElement('div');
     tmp.innerHTML = html;
+
+    // Pull salary/job data from inline scripts BEFORE stripping them (SPAs like GS embed JSON here)
+    const scriptHints = Array.from(tmp.querySelectorAll('script:not([src])'))
+      .map(s => s.textContent || '')
+      .filter(t => /salary|compensation|jobTitle/i.test(t))
+      .map(t => t.slice(0, 1000))
+      .slice(0, 3)
+      .join('\n')
+      .slice(0, 2000);
+
     tmp.querySelectorAll('script,style,nav,footer,header').forEach(el => el.remove());
+    const pageText = (tmp.innerText || tmp.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 3500);
 
-    const prominent = [
-      ...Array.from(tmp.querySelectorAll('h1, h2, title')).map(el => el.textContent.trim()),
-      ...Array.from(tmp.querySelectorAll('strong, b')).map(el => el.textContent.trim()).filter(t => t.length > 3 && t.length < 120),
-    ].filter(Boolean).slice(0, 20).join('\n');
+    if (!pageText && !scriptHints) throw new Error('Page not readable — fill in manually');
 
-    const bodyText = (tmp.innerText || tmp.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 3000);
-    if (bodyText.length < 50) throw new Error('Page loaded but no readable text found — fill in manually');
+    const prompt = `Extract job details from the content below. Return ONLY valid JSON, nothing else:
+{"company": "<company name>", "role": "<exact job title>", "salary": "<salary range or null>"}
 
-    const prompt = `From the job posting below, extract three fields. Return ONLY valid JSON, no other text:
-{"company": "<company or firm name>", "role": "<exact job title>", "salary": "<salary or pay range, or null if not stated>"}
-
-PROMINENT HEADERS & BOLD TEXT (prioritize these for the role name):
-${prominent}
-
-FULL PAGE TEXT:
-${bodyText}`;
+PAGE TEXT:
+${pageText}${scriptHints ? `\n\nEMBEDDED DATA (check here for salary if not in page text):\n${scriptHints}` : ''}`;
 
     const data = await callClaudeAPI([{ role: 'user', content: prompt }], 300);
-    const raw = data.content[0].text.trim();
-    const m = raw.match(/\{[\s\S]*?\}/);
+    const m    = data.content[0].text.trim().match(/\{[\s\S]*?\}/);
     if (!m) throw new Error('Could not parse response — fill in manually');
 
     const info = JSON.parse(m[0]);
-    if (info.company) document.getElementById('f-company').value = info.company;
-    if (info.role)    document.getElementById('f-role').value    = info.role;
-    if (info.salary && info.salary !== 'null') document.getElementById('f-salary').value = info.salary;
-    document.getElementById('f-link').value = url;
-
-    status.style.color = 'var(--strong)';
-    status.textContent = '✓ Company, role & salary filled in';
-    setTimeout(() => { status.textContent = ''; }, 4000);
+    fillFields(info.company, info.role, info.salary !== 'null' ? info.salary : null, url);
+    setFetchStatus(status, '✓ Company, role & salary filled in');
 
   } catch(e) {
-    status.style.color = 'var(--stretch)';
-    status.textContent = e.message === 'NO_API_KEY'
-      ? '⚠ Add your API key in Settings to enable auto-fill'
-      : `⚠ ${e.message}`;
+    setFetchStatus(status,
+      e.message === 'NO_API_KEY' ? '⚠ Add your API key in Settings to enable auto-fill' : `⚠ ${e.message}`,
+      'var(--stretch)'
+    );
   }
 }
 
