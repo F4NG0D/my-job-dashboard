@@ -791,23 +791,21 @@
     .level-xp-label {
       font-size: 11px; color: var(--text-muted); white-space: nowrap;
     }
-    /* ── Level-up wave animation (travels through the bar fill) ── */
-    @keyframes levelBarWave {
-      0%   { background-position: -100% center; }
-      100% { background-position: 250% center; }
+    /* ── Level-up wave animation (sweeps entire stats bar) ── */
+    @keyframes statsBarShimmer {
+      0%   { transform: translateX(-100%); opacity: 0; }
+      8%   { opacity: 1; }
+      92%  { opacity: 1; }
+      100% { transform: translateX(600%); opacity: 0; }
     }
-    .level-bar-fill.wave-active {
-      background: linear-gradient(
-        90deg,
-        rgba(255, 90, 40, 0.8)  0%,
-        rgba(255, 90, 40, 0.8)  20%,
-        rgba(255, 255, 200, 1)  50%,
-        rgba(255, 90, 40, 0.8)  80%,
-        rgba(255, 90, 40, 0.8)  100%
-      ) !important;
-      background-size: 280% 100% !important;
-      animation: levelBarWave 0.75s ease-in-out forwards;
+    .stats-bar-shimmer {
+      position: absolute;
+      top: 0; left: 0;
+      width: 18%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 220, 120, 0.25), rgba(255, 255, 200, 0.45), rgba(255, 220, 120, 0.25), transparent);
+      animation: statsBarShimmer 1s ease-in-out forwards;
       pointer-events: none;
+      z-index: 5;
     }
   </style>
 </head>
@@ -2204,20 +2202,25 @@ function triggerLevelUpAnimation(newLevel, xpIntoLevel, xpForNext) {
   const fillEl = document.getElementById('as-level-fill');
   const lvlEl  = document.getElementById('as-level');
   const xpEl   = document.getElementById('as-level-xp');
+  const strip  = document.getElementById('apps-stats');
   if (!fillEl) return;
 
-  // Step 1: snap bar to 100%
+  // Step 1: snap XP bar to 100%
   fillEl.style.transition = 'none';
   fillEl.style.width = '100%';
 
-  // Step 2: after 100% width is painted, run the wave across the full bar
+  // Step 2: sweep shimmer across the entire stats bar
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      fillEl.classList.add('wave-active');
+      if (strip) {
+        const shimmer = document.createElement('span');
+        shimmer.className = 'stats-bar-shimmer';
+        strip.appendChild(shimmer);
+        setTimeout(() => shimmer.remove(), 1050);
+      }
 
-      // Step 3: after wave completes, update level state and reset bar
+      // Step 3: after shimmer completes, update level text and reset XP bar
       setTimeout(() => {
-        fillEl.classList.remove('wave-active');
         if (lvlEl) lvlEl.textContent = `⚡ Lvl ${newLevel}`;
         if (xpEl)  xpEl.textContent  = `${xpIntoLevel} / ${xpForNext} XP`;
         fillEl.style.transition = 'none';
@@ -2227,7 +2230,7 @@ function triggerLevelUpAnimation(newLevel, xpIntoLevel, xpForNext) {
             fillEl.style.transition = 'width 0.5s ease';
           });
         });
-      }, 800);
+      }, 1050);
     });
   });
 }
@@ -2891,47 +2894,40 @@ async function fetchFromIndeedRSS() {
   return jobs;
 }
 
-// ─── ATS firm lists (Greenhouse & Lever) ────────────────────────────────────
+// ─── ATS firm lists ──────────────────────────────────────────────────────────
+// Greenhouse: only verified working slugs
 const GREENHOUSE_FIRMS = [
-  { name: 'Lazard',                    slug: 'lazard',                  category: 'Investment Banking' },
-  { name: 'Jefferies',                 slug: 'jefferies',               category: 'Investment Banking' },
-  { name: 'Houlihan Lokey',            slug: 'houlihanlokey',           category: 'Investment Banking' },
-  { name: 'Moelis & Company',          slug: 'moeliscompany',           category: 'Advisory'           },
-  { name: 'PJT Partners',              slug: 'pjtpartners',             category: 'Investment Banking' },
-  { name: 'Guggenheim Partners',       slug: 'guggenheimpartners',      category: 'Investment Banking' },
-  { name: 'Evercore',                  slug: 'evercore',                category: 'Investment Banking' },
-  { name: 'Perella Weinberg Partners', slug: 'perellaweinbergpartners', category: 'Investment Banking' },
-  { name: 'Robert W. Baird',           slug: 'rwbaird',                 category: 'Investment Banking' },
-  { name: 'William Blair',             slug: 'williamblair',            category: 'Investment Banking' },
-  { name: 'Piper Sandler',             slug: 'pipersandler',            category: 'Investment Banking' },
-  { name: 'Lincoln International',     slug: 'lincolninternational',    category: 'Advisory'           },
-  { name: 'Harris Williams',           slug: 'harriswilliams',          category: 'Advisory'           },
-  { name: 'TD Cowen',                  slug: 'tdcowen',                 category: 'Investment Banking' },
-  { name: 'Kroll',                     slug: 'kroll',                   category: 'Advisory'           },
-  { name: 'Stifel',                    slug: 'stifelfinancial',         category: 'Investment Banking' },
-  { name: 'Oppenheimer & Co.',         slug: 'oppenheimer',             category: 'Investment Banking' },
-  { name: 'Nomura',                    slug: 'nomuraholdings',          category: 'Investment Banking' },
-  { name: 'Mizuho',                    slug: 'mizuho',                  category: 'Investment Banking' },
-  { name: 'Imperial Capital',          slug: 'imperialcapital',         category: 'Investment Banking' },
+  { name: 'William Blair',        slug: 'williamblair',       category: 'Investment Banking' },
+  { name: 'Lincoln International',slug: 'lincolninternational',category: 'Advisory'          },
 ];
 
-const LEVER_FIRMS = [
-  { name: 'Ares Management',         slug: 'ares-management',       category: 'Asset Management' },
-  { name: 'Oaktree Capital',         slug: 'oaktreecapital',        category: 'Asset Management' },
-  { name: 'Golub Capital',           slug: 'golubcapital',          category: 'Private Credit'   },
-  { name: 'Blue Owl Capital',        slug: 'blueowl',               category: 'Asset Management' },
-  { name: 'Antares Capital',         slug: 'antarescapital',        category: 'Private Credit'   },
-  { name: 'HPS Investment Partners', slug: 'hpsinvestment',         category: 'Private Credit'   },
-  { name: 'Guggenheim Investments',  slug: 'guggenheimInvestments', category: 'Asset Management' },
-  { name: 'Prospect Capital',        slug: 'prospectcapital',       category: 'Private Credit'   },
+// Firms queried via Indeed RSS by company name
+// (Workday's API is POST-only with strict CORS — cannot be called from a static frontend)
+const INDEED_FIRMS = [
+  { name: 'Houlihan Lokey',            query: 'Houlihan+Lokey',           category: 'Investment Banking' },
+  { name: 'Moelis & Company',          query: 'Moelis',                   category: 'Advisory'           },
+  { name: 'PJT Partners',              query: 'PJT+Partners',             category: 'Investment Banking' },
+  { name: 'Piper Sandler',             query: 'Piper+Sandler',            category: 'Investment Banking' },
+  { name: 'Guggenheim Partners',       query: 'Guggenheim+Partners',      category: 'Investment Banking' },
+  { name: 'Harris Williams',           query: 'Harris+Williams',          category: 'Advisory'           },
+  { name: 'Ares Management',           query: 'Ares+Management',          category: 'Asset Management'   },
+  { name: 'Oaktree Capital',           query: 'Oaktree+Capital',          category: 'Asset Management'   },
+  { name: 'Golub Capital',             query: 'Golub+Capital',            category: 'Private Credit'     },
+  { name: 'Blue Owl Capital',          query: 'Blue+Owl+Capital',         category: 'Asset Management'   },
+  { name: 'Apollo Global Management',  query: 'Apollo+Global+Management', category: 'Asset Management'   },
+  { name: 'Raymond James',             query: 'Raymond+James',            category: 'Investment Banking' },
+  { name: 'Rothschild & Co.',          query: 'Rothschild',               category: 'Investment Banking' },
+  { name: 'Lazard',                    query: 'Lazard',                   category: 'Investment Banking' },
+  { name: 'Jefferies',                 query: 'Jefferies',                category: 'Investment Banking' },
+  { name: 'Evercore',                  query: 'Evercore',                 category: 'Investment Banking' },
+  { name: 'Perella Weinberg Partners', query: 'Perella+Weinberg',         category: 'Investment Banking' },
+  { name: 'Baird',                     query: 'Robert+W+Baird',           category: 'Investment Banking' },
 ];
 
-// Finance role keywords used to filter ATS results
-const ATS_FINANCE_KW = [
-  'analyst', 'associate', 'investment', 'banking', 'finance', 'capital markets',
-  'advisory', 'm&a', 'equity', 'credit', 'markets', 'trading', 'treasury',
-  'restructuring', 'debt', 'leveraged', 'corporate finance', 'portfolio',
-  'underwriting', 'syndication', 'fp&a', 'financial', 'mergers',
+// Non-finance roles to exclude
+const ATS_EXCLUDE_KW = [
+  'software engineer', 'devops', 'it support', 'help desk', 'facilities',
+  'receptionist', 'janitor', 'security guard', 'food service',
 ];
 
 // ─── Fetch real listings: Greenhouse ATS ────────────────────────────────────
@@ -2944,11 +2940,17 @@ async function fetchFromGreenhouse() {
         `https://boards-api.greenhouse.io/v1/boards/${firm.slug}/jobs`,
         { signal: AbortSignal.timeout(8000) }
       );
-      if (!res.ok) return;
+      if (!res.ok) {
+        console.warn(`[Greenhouse] ${firm.name} (${firm.slug}): HTTP ${res.status}`);
+        return;
+      }
       const data = await res.json();
-      for (const job of (data.jobs || [])) {
+      const jobs  = data.jobs || [];
+      let added = 0;
+      for (const job of jobs) {
+        if (added >= 8) break; // cap per firm so no single company dominates
         const titleLower = (job.title || '').toLowerCase();
-        if (!ATS_FINANCE_KW.some(kw => titleLower.includes(kw))) continue;
+        if (ATS_EXCLUDE_KW.some(kw => titleLower.includes(kw))) continue;
         results.push({
           title:       job.title,
           company:     firm.name,
@@ -2959,8 +2961,10 @@ async function fetchFromGreenhouse() {
           _source:     'Greenhouse',
           category:    firm.category,
         });
+        added++;
       }
-    } catch { /* firm not on Greenhouse or timed out — skip silently */ }
+      console.log(`[Greenhouse] ${firm.name}: ${added} roles`);
+    } catch(e) { console.warn(`[Greenhouse] ${firm.name} (${firm.slug}): ${e.message}`); }
   }));
   return results;
 }
@@ -2975,12 +2979,20 @@ async function fetchFromLever() {
         `https://api.lever.co/v0/postings/${firm.slug}?mode=json`,
         { signal: AbortSignal.timeout(8000) }
       );
-      if (!res.ok) return;
+      if (!res.ok) {
+        console.warn(`[Lever] ${firm.name} (${firm.slug}): HTTP ${res.status}`);
+        return;
+      }
       const jobs = await res.json();
-      if (!Array.isArray(jobs)) return;
+      if (!Array.isArray(jobs)) {
+        console.warn(`[Lever] ${firm.name}: response was not an array`);
+        return;
+      }
+      let added = 0;
       for (const job of jobs) {
+        if (added >= 8) break; // cap per firm
         const titleLower = (job.text || '').toLowerCase();
-        if (!ATS_FINANCE_KW.some(kw => titleLower.includes(kw))) continue;
+        if (ATS_EXCLUDE_KW.some(kw => titleLower.includes(kw))) continue;
         results.push({
           title:       job.text,
           company:     firm.name,
@@ -2991,10 +3003,57 @@ async function fetchFromLever() {
           _source:     'Lever',
           category:    firm.category,
         });
+        added++;
       }
-    } catch { /* firm not on Lever or timed out — skip silently */ }
+      console.log(`[Lever] ${firm.name}: ${added} roles`);
+    } catch(e) { console.warn(`[Lever] ${firm.name} (${firm.slug}): ${e.message}`); }
   }));
   return results;
+}
+
+// ─── Fetch real listings: Indeed by company name ─────────────────────────────
+// Queries Indeed RSS per firm — gets their real live postings without needing
+// direct ATS API access. Works for any firm regardless of what ATS they use.
+async function fetchFromIndeedByCompany() {
+  const jobs       = [];
+  const THIRTY_DAYS = 30 * 86400000;
+
+  await Promise.allSettled(INDEED_FIRMS.map(async firm => {
+    try {
+      const rss = `https://www.indeed.com/rss?q=${firm.query}&l=New+York%2C+NY&sort=date&fromage=30`;
+      const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(rss)}`,
+                              { signal: AbortSignal.timeout(10000) });
+      if (!res.ok) { console.warn(`[Indeed/Co] ${firm.name}: HTTP ${res.status}`); return; }
+
+      const xml = new DOMParser().parseFromString(await res.text(), 'application/xml');
+      if (xml.querySelector('parsererror')) return;
+
+      let added = 0;
+      for (const item of Array.from(xml.querySelectorAll('item'))) {
+        if (added >= 5) break;
+        const titleRaw = item.querySelector('title')?.textContent || '';
+        const pubDate  = item.querySelector('pubDate')?.textContent || '';
+        if (pubDate && Date.now() - new Date(pubDate) > THIRTY_DAYS) continue;
+
+        const role = titleRaw.split(' - ')[0]?.trim() || titleRaw;
+        if (!role) continue;
+
+        jobs.push({
+          title:      role,
+          company:    firm.name,
+          location:   'New York, NY',
+          link:       buildJobSearchURL(firm.name, role),
+          description:'',
+          date_added: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+          _source:    'Indeed',
+          category:   firm.category,
+        });
+        added++;
+      }
+      console.log(`[Indeed/Co] ${firm.name}: ${added} roles`);
+    } catch(e) { console.warn(`[Indeed/Co] ${firm.name}: ${e.message}`); }
+  }));
+  return jobs;
 }
 
 // ─── DEPRECATED: fetchFromFirmCareerPages ───────────────────────────────────
@@ -3130,36 +3189,29 @@ async function evaluateJobsWithClaude(rawJobs) {
   });
 
   // Send only the fields Claude needs — keeps the prompt small and avoids token limits
-  const slim = rawJobs.slice(0, 40).map((j, i) => ({
+  // Shuffle so no single firm dominates if the slice cuts off
+  const shuffled = [...rawJobs].sort(() => Math.random() - 0.5);
+  const slim = shuffled.slice(0, 50).map((j, i) => ({
     _i:      i,
     title:   j.title,
     company: j.company,
     location:j.location,
     category:j.category,
-    source:  j._source,
   }));
 
-  const prompt = `You are a finance career advisor evaluating job listings for:
+  const prompt = `You are a finance career advisor. Score ALL ${slim.length} job listings below for this candidate:
 ${ANTONIO_PROFILE}
 
-Here are real, live job listings to evaluate:
+Listings:
 ${JSON.stringify(slim, null, 2)}
 
-Select the best matches for Antonio (up to 20). For each, return:
-{
-  "title": "exact title from input",
-  "company": "exact company from input",
-  "category": "Investment Banking|Corporate Finance|FP&A|Markets / S&T|Advisory|Asset Management|Private Credit|Corporate Dev",
-  "location": "location from input",
-  "salary": "Estimated range or Not Listed",
-  "fit": "Strong Fit|Good Fit|Stretch",
-  "description": "2-3 sentences on why this fits Antonio — reference his OCBC IB experience ($260M, 6 deals), Fordham 3.74 GPA, or specific skills where relevant. Be concrete."
-}
+Return ALL ${slim.length} listings as a JSON array. For each:
+{"title":"exact title","company":"exact company","category":"Investment Banking|Advisory|Asset Management|Markets / S&T|Corporate Finance|Private Credit","location":"exact location","salary":"Not Listed","fit":"Strong Fit|Good Fit|Stretch","description":"1 sentence why it fits or doesn't."}
 
-Return ONLY a valid JSON array, no other text.`;
+Return ONLY the JSON array, no other text.`;
 
   try {
-    const data = await callClaudeAPI([{ role: 'user', content: prompt }], 4000);
+    const data = await callClaudeAPI([{ role: 'user', content: prompt }], 6000);
     const text = data.content[0].text.trim();
     const m = text.match(/\[[\s\S]*\]/);
     if (!m) throw new Error('parse');
@@ -3214,7 +3266,7 @@ async function searchLiveJobLeads() {
     <div style="grid-column:1/-1;text-align:center;padding:60px 20px">
       <div style="font-size:36px;margin-bottom:14px">🔍</div>
       <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px">Searching live job boards…</div>
-      <div style="font-size:13px;color:var(--text-muted)">Scanning Greenhouse, Lever, The Muse, and Indeed for real open roles</div>
+      <div style="font-size:13px;color:var(--text-muted)">Scanning Greenhouse, Indeed, and The Muse for real open roles across 20+ firms</div>
       <div style="font-size:12px;color:var(--text-muted);margin-top:6px">This takes 15–30 seconds</div>
     </div>`;
 
@@ -3222,20 +3274,20 @@ async function searchLiveJobLeads() {
   let sourceNote = '';
 
   try {
-    // Parallel fetch from all four real sources — no hallucination fallback
-    const [museRes, indeedRes, greenhouseRes, leverRes] = await Promise.allSettled([
+    // Parallel fetch from all sources — no hallucination fallback
+    const [museRes, indeedRes, greenhouseRes, indeedCoRes] = await Promise.allSettled([
       fetchFromTheMuse(),
       fetchFromIndeedRSS(),
       fetchFromGreenhouse(),
-      fetchFromLever(),
+      fetchFromIndeedByCompany(),
     ]);
 
     // Merge all real results
     const rawJobs = [
-      ...(museRes.status       === 'fulfilled' ? museRes.value       : []),
-      ...(indeedRes.status     === 'fulfilled' ? indeedRes.value     : []),
-      ...(greenhouseRes.status === 'fulfilled' ? greenhouseRes.value : []),
-      ...(leverRes.status      === 'fulfilled' ? leverRes.value      : []),
+      ...(museRes.status      === 'fulfilled' ? museRes.value      : []),
+      ...(indeedRes.status    === 'fulfilled' ? indeedRes.value    : []),
+      ...(greenhouseRes.status=== 'fulfilled' ? greenhouseRes.value: []),
+      ...(indeedCoRes.status  === 'fulfilled' ? indeedCoRes.value  : []),
     ];
 
     // Deduplicate by title + company
@@ -3247,8 +3299,8 @@ async function searchLiveJobLeads() {
       return true;
     });
 
-    const ghCount = greenhouseRes.status === 'fulfilled' ? greenhouseRes.value.length : 0;
-    const lvCount = leverRes.status      === 'fulfilled' ? leverRes.value.length      : 0;
+    const ghCount = greenhouseRes.status === 'fulfilled' ? greenhouseRes.value.length  : 0;
+    const coCount = indeedCoRes.status   === 'fulfilled' ? indeedCoRes.value.length    : 0;
 
     if (realJobs.length > 0) {
       grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-muted);font-size:13px">
@@ -3256,7 +3308,7 @@ async function searchLiveJobLeads() {
 
       jobs = await evaluateJobsWithClaude(realJobs);
       const scoredNote = jobs.length < realJobs.length ? ` (top ${jobs.length} scored)` : '';
-      sourceNote = `${realJobs.length} live listings · ${ghCount} Greenhouse · ${lvCount} Lever · The Muse · Indeed${scoredNote}`;
+      sourceNote = `${realJobs.length} live listings · ${ghCount} Greenhouse · ${coCount} firm-specific · The Muse · Indeed${scoredNote}`;
 
     } else {
       // All sources returned nothing — show honest empty state, no hallucination
