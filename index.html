@@ -270,6 +270,19 @@
     }
     .apply-btn:hover { background: var(--accent); color: #fff; }
 
+    .track-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 13px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .track-btn:hover { border-color: var(--accent); color: var(--accent); }
+
     .new-badge {
       font-size: 10px; font-weight: 700;
       background: rgba(255,69,0,0.18); color: var(--accent2);
@@ -757,6 +770,8 @@
       /* Card footer: stack on tiny phones */
       .card-footer { flex-direction: column; align-items: flex-start; gap: 10px; }
       .apply-btn { width: 100%; text-align: center; }
+      .track-btn { width: 100%; }
+      .card-footer .btn-row { width: 100%; }
 
       /* Cover letter: tighter sections */
       .cl-section { padding: 14px; }
@@ -1501,10 +1516,44 @@ function renderLeads() {
           ${j.salary?`<div class="card-salary">${j.salary}</div>`:''}
           <div class="card-date">Added ${fmtDate(j.date_added)}</div>
         </div>
-        ${j.link?`<a class="apply-btn" href="${j.link}" target="_blank" rel="noopener">Search & Apply →</a>`:''}
+        <div class="btn-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="track-btn" onclick="addLeadToApps('${j.id}')">+ Track</button>
+          ${j.link?`<a class="apply-btn" href="${j.link}" target="_blank" rel="noopener">Search & Apply →</a>`:''}
+        </div>
       </div>
     </div>`;
   }).join('');
+}
+
+function addLeadToApps(id) {
+  const lead = ALL_LEADS.find(l => l.id === id);
+  if (!lead) return;
+
+  // 1. Reset all form fields
+  document.getElementById('f-company').value            = '';
+  document.getElementById('f-role').value               = '';
+  document.getElementById('f-salary').value             = '';
+  document.getElementById('f-link').value               = '';
+  document.getElementById('f-notes').value              = '';
+  document.getElementById('f-date-added').value         = '';
+  document.getElementById('f-date-submitted').value     = '';
+  document.getElementById('f-fetch-url').value          = '';
+  document.getElementById('f-fetch-status').textContent = '';
+  document.getElementById('f-status').value             = 'Have Not Applied';
+
+  // 2. Pre-fill from lead
+  document.getElementById('f-company').value    = lead.company || '';
+  document.getElementById('f-role').value       = lead.title   || '';
+  document.getElementById('f-salary').value     = lead.salary  || '';
+  document.getElementById('f-link').value       = lead.link    || '';
+  document.getElementById('f-date-added').value = new Date().toISOString().split('T')[0];
+
+  // 3. Open modal
+  document.getElementById('modal-form-wrap').style.display = '';
+  document.getElementById('modal-success').style.display   = 'none';
+  document.getElementById('modal-submit-btn').disabled     = false;
+  document.getElementById('modal-submit-btn').textContent  = 'Save Application';
+  document.getElementById('add-modal').classList.add('open');
 }
 
 async function loadLeads() {
