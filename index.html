@@ -27,6 +27,8 @@
       --status-interview: #46d160;
       --status-offer: #46d160;
       --status-notapplied: #818384;
+      --status-stale: #f59e0b;
+      --status-interviewing: #06b6d4;
     }
 
     /* ── Light theme (Apple.com-inspired) ── */
@@ -48,6 +50,8 @@
       --status-interview: #28a745;
       --status-offer: #30d158;
       --status-notapplied: #6e6e73;
+      --status-stale: #e08c00;
+      --status-interviewing: #0891b2;
     }
     html[data-theme="light"] .modal-overlay { background: rgba(0,0,0,0.45); }
     html[data-theme="light"] .modal { box-shadow: 0 8px 40px rgba(0,0,0,0.18); }
@@ -346,6 +350,8 @@
     .s-interview{ background: rgba(70,209,96,0.15);   color: var(--status-interview); }
     .s-offer    { background: rgba(70,209,96,0.15);   color: var(--status-offer); }
     .s-notyet   { background: rgba(129,131,132,0.15); color: var(--status-notapplied); }
+    .s-stale    { background: rgba(245,158,11,0.15);  color: var(--status-stale); }
+    .s-interviewing { background: rgba(6,182,212,0.15); color: var(--status-interviewing); }
 
     /* ── Inline status select in table ── */
     .status-select {
@@ -377,6 +383,8 @@
     .status-select.s-interview { background: rgba(70,209,96,0.12);   color: var(--status-interview);  border-color: rgba(70,209,96,0.35); }
     .status-select.s-offer     { background: rgba(70,209,96,0.12);   color: var(--status-offer);      border-color: rgba(70,209,96,0.35); }
     .status-select.s-notyet    { background: rgba(129,131,132,0.10); color: var(--status-notapplied); border-color: rgba(129,131,132,0.3); }
+    .status-select.s-stale     { background: rgba(245,158,11,0.10);  color: var(--status-stale);      border-color: rgba(245,158,11,0.35); }
+    .status-select.s-interviewing { background: rgba(6,182,212,0.10); color: var(--status-interviewing); border-color: rgba(6,182,212,0.35); }
     .status-select.saving     { opacity: 0.55; cursor: wait; pointer-events: none; }
 
     .tbl-salary { font-size: 12px; color: var(--accent2); font-weight: 600; white-space: nowrap; }
@@ -535,6 +543,61 @@
     .cl-prompt-fallback button { background: var(--accent); border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; }
     .cl-or-divider { text-align: center; font-size: 11px; color: var(--text-muted); margin: 6px 0; }
     .cl-status { font-size: 12px; color: var(--accent2); margin-top: 4px; min-height: 18px; }
+
+    /* ── Interview Prep tab ── */
+    .ip-layout {
+      display: grid; grid-template-columns: 280px 1fr; gap: 20px;
+      padding: 24px 32px; max-width: 1280px; margin: 0 auto;
+    }
+    @media (max-width: 900px) { .ip-layout { grid-template-columns: 1fr; } }
+    .ip-sidebar { display: flex; flex-direction: column; gap: 10px; }
+    .ip-sidebar-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .ip-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .ip-card:hover { border-color: var(--accent); }
+    .ip-card.active { border-color: var(--accent); background: var(--accent-soft); }
+    .ip-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .ip-card-logo {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 11px; color: var(--accent); flex-shrink: 0;
+    }
+    .ip-card-company { font-weight: 700; font-size: 13px; }
+    .ip-card-role { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .ip-badge-ready { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: rgba(70,209,96,0.15); color: var(--strong); }
+    .ip-badge-generate { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); }
+    .ip-panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-height: 400px;
+    }
+    .ip-panel-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .ip-panel-title { font-size: 15px; font-weight: 700; }
+    .ip-panel-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .ip-panel-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ip-output {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px; font-size: 13px; color: var(--text);
+      outline: none; resize: vertical; min-height: 480px; font-family: inherit;
+      line-height: 1.7; flex: 1;
+    }
+    .ip-generate-btn {
+      width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none; border-radius: 10px; padding: 14px 24px;
+      font-size: 15px; font-weight: 700; color: #fff; cursor: pointer;
+      transition: opacity 0.15s; margin-top: 4px;
+    }
+    .ip-generate-btn:hover { opacity: 0.9; }
+    .ip-generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ip-empty {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      flex: 1; color: var(--text-muted); text-align: center; padding: 40px 20px; gap: 12px;
+    }
+    .ip-empty-icon { font-size: 40px; }
+    .ip-status { font-size: 12px; color: var(--accent2); min-height: 18px; }
 
     /* ── Settings modal extra ── */
     .settings-saved-url { font-size: 11px; color: var(--accent2); margin-top: 4px; }
@@ -847,6 +910,9 @@
       <button class="tab-btn" onclick="switchTab('coverletter')" id="btn-coverletter">
         ✍️ Cover Letter Generator
       </button>
+      <button class="tab-btn" onclick="switchTab('interviewprep')" id="btn-interviewprep">
+        🎯 Interview Prep
+      </button>
     </nav>
 
     <div class="header-meta" style="display:flex;align-items:center;gap:10px">
@@ -863,6 +929,7 @@
   <button class="filter-btn active" onclick="switchTab('leads')"        id="mbtn-leads">🔍 Job Leads</button>
   <button class="filter-btn"        onclick="switchTab('applications')" id="mbtn-applications">📋 Applications</button>
   <button class="filter-btn"        onclick="switchTab('coverletter')"  id="mbtn-coverletter">✍️ Cover Letter</button>
+  <button class="filter-btn"        onclick="switchTab('interviewprep')"  id="mbtn-interviewprep">🎯 Interview Prep</button>
 </div>
 
 <!-- ═══════════════════════════════ MAIN ════════════════════════════════ -->
@@ -935,6 +1002,7 @@
         <button class="filter-btn" data-scat="Rejected"                           onclick="setAppFilter('Rejected')">✕ Rejected</button>
         <button class="filter-btn" data-scat="Interview"                          onclick="setAppFilter('Interview')">🎯 Interview</button>
         <button class="filter-btn" data-scat="Not Yet Applied"                    onclick="setAppFilter('Not Yet Applied')">📌 Not Applied</button>
+        <button class="filter-btn" data-scat="Stale"                              onclick="setAppFilter('Stale')">Stale</button>
       </div>
       <select class="sort-select" id="apps-sort" onchange="renderApps()">
         <option value="date_added">Date Added ↓</option>
@@ -1074,6 +1142,25 @@
     </div>
   </div>
 
+  <!-- ───────────── TAB 4: INTERVIEW PREP ───────────── -->
+  <div id="panel-interviewprep" class="tab-panel">
+    <div class="ip-layout">
+      <!-- Left sidebar -->
+      <div class="ip-sidebar" id="ip-sidebar">
+        <div class="ip-sidebar-title">Interviewing</div>
+        <div id="ip-cards"></div>
+      </div>
+      <!-- Right panel -->
+      <div class="ip-panel" id="ip-panel">
+        <div class="ip-empty" id="ip-empty">
+          <div class="ip-empty-icon">🎯</div>
+          <div style="font-weight:600;font-size:15px;color:var(--text)">Select a company to prep for</div>
+          <div style="font-size:13px">Pick an application from the sidebar to view or generate your interview prep sheet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <!-- ═══════════════════════════════ SETTINGS MODAL ══════════════════════ -->
@@ -1144,8 +1231,10 @@
             <option value="Have Not Applied">Have Not Applied</option>
             <option value="Submitted - Pending Response" selected>Submitted – Pending Response</option>
             <option value="Rejected">Rejected</option>
+            <option value="Interviewing">Interviewing</option>
             <option value="Interviewed">Interviewed</option>
             <option value="Offer Extended - In Progress">Offer Extended – In Progress</option>
+            <option value="Stale - No Response">Stale – No Response</option>
           </select>
         </div>
         <div class="form-cols">
@@ -1218,8 +1307,10 @@
             <option value="Have Not Applied">Have Not Applied</option>
             <option value="Submitted - Pending Response">Submitted – Pending Response</option>
             <option value="Rejected">Rejected</option>
+            <option value="Interviewing">Interviewing</option>
             <option value="Interviewed">Interviewed</option>
             <option value="Offer Extended - In Progress">Offer Extended – In Progress</option>
+            <option value="Stale - No Response">Stale – No Response</option>
           </select>
         </div>
         <div class="form-cols">
@@ -1306,7 +1397,10 @@ let ALL_APPS  = [];
 let activeLeadFilter = 'All';
 let activeAppFilter  = 'All';
 let activeTab = 'leads';
-const TAB_ORDER = ['leads', 'applications', 'coverletter'];
+const TAB_ORDER = ['leads', 'applications', 'coverletter', 'interviewprep'];
+let ALL_PREP_SHEETS  = [];
+let activePrepAppId  = null;
+let prepSheetsLoaded = false;
 
 // ─── Category colours ──────────────────────────────────────────────────────
 const CAT_COLORS = {
@@ -1327,17 +1421,21 @@ const STATUS_OPTIONS = [
   { value: 'Submitted - Pending Response', cls: 's-pending',   label: 'Submitted – Pending' },
   { value: 'Rejected',                     cls: 's-rejected',  label: 'Rejected' },
   { value: 'Interviewed',                 cls: 's-interview', label: 'Interviewed' },
+  { value: 'Interviewing',               cls: 's-interviewing', label: 'Interviewing' },
   { value: 'Offer Extended - In Progress', cls: 's-offer',     label: 'Offer Extended' },
+  { value: 'Stale - No Response',          cls: 's-stale',     label: 'Stale – No Response' },
 ];
 
 function normalizeStatusToOption(s) {
   if (!s) return 'Have Not Applied';
   const l = s.toLowerCase();
   if (l.includes('offer'))                                  return 'Offer Extended - In Progress';
+  if (l === 'interviewing')                                 return 'Interviewing';
   if (l.includes('interview'))                              return 'Interviewed';
   if (l.includes('reject'))                                 return 'Rejected';
   if (l.includes('pending') || l.includes('submitted'))    return 'Submitted - Pending Response';
   if (l.includes('not yet') || l.includes('not applied') || l.includes('have not')) return 'Have Not Applied';
+  if (l.includes('stale')) return 'Stale - No Response';
   return 'Have Not Applied';
 }
 
@@ -1345,8 +1443,10 @@ function statusCls(s) {
   if (!s) return 's-notyet';
   const l = s.toLowerCase();
   if (l.includes('offer'))                               return 's-offer';
+  if (l === 'interviewing')                              return 's-interviewing';
   if (l.includes('interview'))                           return 's-interview';
   if (l.includes('reject'))                              return 's-rejected';
+  if (l.includes('stale'))                               return 's-stale';
   if (l.includes('pending') || l.includes('submitted')) return 's-pending';
   return 's-notyet';
 }
@@ -1382,15 +1482,41 @@ function statusInfo(s) {
   const l = s.toLowerCase();
   if (l.includes('offer'))
     return { cls:'s-offer',     label:'Offer Extended' };
+  if (l === 'interviewing')
+    return { cls:'s-interviewing', label:'Interviewing' };
   if (l.includes('interview'))
     return { cls:'s-interview', label:'Interviewed' };
   if (l.includes('reject'))
     return { cls:'s-rejected',  label:'Rejected' };
+  if (l.includes('stale'))
+    return { cls:'s-stale',     label:'Stale – No Response' };
   if (l.includes('pending') || l.includes('submitted'))
     return { cls:'s-pending',   label:'Pending' };
   if (l.includes('not yet') || l.includes('not applied') || l.includes('have not'))
     return { cls:'s-notyet',    label:'Have Not Applied' };
   return { cls:'s-notyet', label: s };
+}
+
+function isAutoStale(app) {
+  if ((app.status || '').trim() !== 'Submitted - Pending Response') return false;
+  if (!app.date_submitted) return false;
+  return (Date.now() - new Date(app.date_submitted)) / 86400000 > 45;
+}
+
+async function autoMarkStaleApps() {
+  const stale = ALL_APPS.filter(isAutoStale);
+  if (!stale.length) return;
+  // Update local state immediately so renderApps() shows the right status
+  stale.forEach(app => { app.status = 'Stale - No Response'; });
+  renderApps();
+  // Persist to Supabase (fire-and-forget — UI already updated)
+  await Promise.allSettled(stale.map(app =>
+    fetch(`${SUPABASE_URL}/rest/v1/Applications%20Database?id=eq.${encodeURIComponent(app.id)}`, {
+      method: 'PATCH',
+      headers: SB_POST_HEADERS,
+      body: JSON.stringify({ 'Application Status': 'Stale - No Response' }),
+    })
+  ));
 }
 
 // ─── Tab switching ─────────────────────────────────────────────────────────
@@ -1431,6 +1557,13 @@ function switchTab(tab) {
     const hasKey = localStorage.getItem('anthropic_api_key') || ANTHROPIC_KEY;
     const banner = document.getElementById('cl-api-banner');
     if (banner) banner.style.display = hasKey ? 'none' : 'flex';
+  }
+  if (tab === 'interviewprep') {
+    if (!prepSheetsLoaded) {
+      loadPrepSheets();
+    } else {
+      renderPrepSidebar(); // re-render in case app statuses changed since last visit
+    }
   }
 }
 
@@ -1599,7 +1732,7 @@ function renderApps() {
   const sort = document.getElementById('apps-sort')?.value || 'date_added';
 
   // Stats
-  const submitted = ALL_APPS.filter(a=>{const s=(a.status||'').toLowerCase();return s.includes('submit')||s.includes('pending');});
+  const submitted = ALL_APPS.filter(a=>{const s=(a.status||'').toLowerCase();return (s.includes('submit')||s.includes('pending'))&&!s.includes('stale');});
   const rejected  = ALL_APPS.filter(a=>(a.status||'').toLowerCase().includes('reject'));
   const interview = ALL_APPS.filter(a=>{const s=(a.status||'').toLowerCase();return s.includes('interview')||s.includes('offer');});
   const responded = rejected.length + interview.length;
@@ -1625,7 +1758,7 @@ function renderApps() {
   ).join('');
 
   // Filter + sort
-  const statusOrder = {'interview':0,'offer':0,'s-interview':0,'pending':1,'submit':1,'reject':2,'not yet':3};
+  const statusOrder = {'interview':0,'offer':0,'s-interview':0,'pending':1,'submit':1,'stale':2,'reject':3,'not yet':4};
   let apps = ALL_APPS.filter(a => {
     const matchStatus = activeAppFilter === 'All' ||
       (a.status || '').toLowerCase().includes(activeAppFilter.toLowerCase().split(' ')[0]);
@@ -1752,6 +1885,8 @@ async function loadApps() {
 
     renderApps();
     updateHeaderCount();
+    autoMarkStaleApps();
+    if (prepSheetsLoaded) renderPrepSidebar(); // sync sidebar if tab was already opened
 
   } catch(err) {
     cont.innerHTML = `<div class="error-box">
@@ -2556,8 +2691,212 @@ function copyPromptForClaude() {
     .catch(() => prompt('Copy this prompt and paste into Claude.ai:', _clPromptCache));
 }
 
+// ─── TAB 4: INTERVIEW PREP ─────────────────────────────────────────────────
+
+async function loadPrepSheets() {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/Interview%20Prep?select=*&order=created_at.desc`,
+      { headers: SB_HEADERS }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    ALL_PREP_SHEETS = await res.json();
+  } catch(e) {
+    console.warn('Could not load prep sheets:', e.message);
+    ALL_PREP_SHEETS = [];
+  }
+  prepSheetsLoaded = true;
+  renderPrepSidebar();
+}
+
+function renderPrepSidebar() {
+  const interviewing = ALL_APPS.filter(a =>
+    (a.status || '').toLowerCase() === 'interviewing'
+  );
+  const cards = document.getElementById('ip-cards');
+  if (!cards) return;
+
+  if (!interviewing.length) {
+    cards.innerHTML = `<div style="font-size:13px;color:var(--text-muted);padding:12px 0">
+      No applications set to "Interviewing" yet.<br>Update a status in My Applications to get started.
+    </div>`;
+    return;
+  }
+
+  cards.innerHTML = interviewing.map(a => {
+    const sheet = ALL_PREP_SHEETS.find(s => s.app_id === a.id);
+    const badge = sheet
+      ? `<span class="ip-badge-ready">Sheet ready</span>`
+      : `<span class="ip-badge-generate">Generate</span>`;
+    const isActive = a.id === activePrepAppId;
+    return `<div class="ip-card${isActive ? ' active' : ''}" onclick="selectPrepCard('${(a.id||'').replace(/'/g,"\\'")}')">
+      <div class="ip-card-header">
+        <div class="ip-card-logo">${initials(a.company)}</div>
+        <div>
+          <div class="ip-card-company">${a.company}</div>
+          <div class="ip-card-role">${a.role}</div>
+        </div>
+      </div>
+      ${badge}
+    </div>`;
+  }).join('');
+}
+
+function selectPrepCard(appId) {
+  activePrepAppId = appId;
+  renderPrepSidebar(); // re-render to update active state
+  const app    = ALL_APPS.find(a => a.id === appId);
+  const sheet  = ALL_PREP_SHEETS.find(s => s.app_id === appId);
+  const panel  = document.getElementById('ip-panel');
+  if (!app || !panel) return;
+
+  if (sheet) {
+    renderPrepSheet(app, sheet);
+  } else {
+    panel.innerHTML = `
+      <div class="ip-panel-header">
+        <div>
+          <div class="ip-panel-title">${app.company} — ${app.role}</div>
+          <div class="ip-panel-meta">No prep sheet yet</div>
+        </div>
+      </div>
+      <div class="ip-status" id="ip-status"></div>
+      <button class="ip-generate-btn" id="ip-gen-btn" onclick="generatePrepSheet('${(appId||'').replace(/'/g,"\\'")}')">
+        🎯 Generate Interview Prep Sheet
+      </button>`;
+  }
+}
+
+function renderPrepSheet(app, sheet) {
+  const panel = document.getElementById('ip-panel');
+  const genDate = sheet.generated_at
+    ? new Date(sheet.generated_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
+    : '';
+  const escapedAppId = (app.id||'').replace(/'/g,"\\'");
+  const escapedPrepId = (sheet.id||'').replace(/'/g,"\\'");
+  panel.innerHTML = `
+    <div class="ip-panel-header">
+      <div>
+        <div class="ip-panel-title">${app.company} — ${app.role}</div>
+        <div class="ip-panel-meta">Generated ${genDate}</div>
+      </div>
+      <div class="ip-panel-actions">
+        <button class="cl-copy-btn" onclick="copyPrepSheet()">Copy</button>
+        <button class="cl-copy-btn" onclick="generatePrepSheet('${escapedAppId}')">Regenerate</button>
+        <button class="btn-danger" style="padding:6px 14px;font-size:12px" onclick="deletePrepSheet('${escapedPrepId}','${escapedAppId}')">🗑 Delete</button>
+      </div>
+    </div>
+    <div class="ip-status" id="ip-status"></div>
+    <textarea class="ip-output" id="ip-output" readonly>${sheet.content || ''}</textarea>`;
+}
+
+function copyPrepSheet() {
+  const el = document.getElementById('ip-output');
+  if (!el) return;
+  navigator.clipboard.writeText(el.value)
+    .then(() => { const s = document.getElementById('ip-status'); if(s) { s.textContent = '✓ Copied!'; setTimeout(()=>{ s.textContent=''; }, 2000); } })
+    .catch(() => {});
+}
+
+async function generatePrepSheet(appId) {
+  const app = ALL_APPS.find(a => a.id === appId);
+  if (!app) return;
+
+  const btn    = document.getElementById('ip-gen-btn');
+  const status = document.getElementById('ip-status');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+  if (status) status.textContent = 'Calling Claude — generating full prep sheet, may take up to 2 minutes…';
+
+  const jobContext = app.link ? `\nJob URL: ${app.link}` : '';
+  const prompt = `Generate a comprehensive interview prep sheet for the following role:
+
+Company: ${app.company}
+Role: ${app.role}${jobContext}
+
+${ANTONIO_PROFILE}
+
+Structure your response with exactly these four sections, each with a clear heading:
+
+1. COMPANY OVERVIEW
+Provide the firm's history, what they do, their culture, recent notable deals, and key clients. Be specific and research-level detailed.
+
+2. YOUR PITCH
+Write a tailored 60–90 second verbal intro script Antonio should practice. Reference his OCBC deal experience, GPA, and specific skills relevant to this firm.
+
+3. EXPECTED QUESTIONS & SUGGESTED ANSWERS
+List 8 common IB/finance interview questions with concise, tailored answers that tie back to Antonio's background and this specific firm.
+
+4. QUESTIONS TO ASK THEM
+List 5 smart, firm-specific questions Antonio can ask the interviewer that show he's done his research.
+
+Be detailed, specific, and practical — this is a real interview prep tool.`;
+
+  try {
+    const data = await callClaudeAPI(
+      [{ role: 'user', content: prompt }],
+      3500,
+      'You are an expert investment banking interview coach preparing a candidate for interviews. Be detailed, specific, and practical.',
+      120000
+    );
+    const content = data.content[0].text.trim();
+    const now     = new Date().toISOString();
+
+    // Check if a sheet already exists for this app — overwrite if so
+    const existing = ALL_PREP_SHEETS.find(s => s.app_id === appId);
+    let savedSheet;
+
+    if (existing) {
+      // PATCH existing record
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/Interview%20Prep?id=eq.${encodeURIComponent(existing.id)}`,
+        { method: 'PATCH', headers: SB_POST_HEADERS, body: JSON.stringify({ content, generated_at: now }) }
+      );
+      if (!res.ok) throw new Error(`Save failed: HTTP ${res.status}`);
+      existing.content      = content;
+      existing.generated_at = now;
+      savedSheet = existing;
+    } else {
+      // POST new record
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/Interview%20Prep`,
+        { method: 'POST', headers: { ...SB_POST_HEADERS, 'Prefer': 'return=representation' },
+          body: JSON.stringify({ app_id: appId, company: app.company, role: app.role, content, generated_at: now }) }
+      );
+      if (!res.ok) throw new Error(`Save failed: HTTP ${res.status}`);
+      const rows = await res.json();
+      savedSheet = rows[0] || { id: Date.now().toString(), app_id: appId, company: app.company, role: app.role, content, generated_at: now };
+      ALL_PREP_SHEETS.push(savedSheet);
+    }
+
+    renderPrepSidebar();
+    renderPrepSheet(app, savedSheet);
+
+  } catch(e) {
+    if (status) status.textContent = `⚠ ${e.message === 'NO_API_KEY' ? 'Add your API key in Settings' : e.message}`;
+    if (btn) { btn.disabled = false; btn.textContent = '🎯 Generate Interview Prep Sheet'; }
+  }
+}
+
+async function deletePrepSheet(prepId, appId) {
+  if (!confirm('Delete this prep sheet? This cannot be undone.')) return;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/Interview%20Prep?id=eq.${encodeURIComponent(prepId)}`,
+      { method: 'DELETE', headers: SB_POST_HEADERS }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    ALL_PREP_SHEETS = ALL_PREP_SHEETS.filter(s => s.id !== prepId);
+    activePrepAppId = null;
+    renderPrepSidebar();
+    const panel = document.getElementById('ip-panel');
+    if (panel) panel.innerHTML = `<div class="ip-empty"><div class="ip-empty-icon">🗑</div><div style="color:var(--text);font-weight:600">Prep sheet deleted.</div></div>`;
+  } catch(e) {
+    alert(`Could not delete: ${e.message}`);
+  }
+}
+
 // ─── Shared Claude API caller (direct → CORS proxy fallback) ───────────────
-async function callClaudeAPI(messages, maxTokens = 1500, system = null) {
+async function callClaudeAPI(messages, maxTokens = 1500, system = null, timeoutMs = 60000) {
   // Priority: Settings (localStorage) → hardcoded constant above → error
   const apiKey = localStorage.getItem('anthropic_api_key') || ANTHROPIC_KEY || '';
   if (!apiKey) throw new Error('NO_API_KEY');
@@ -2583,7 +2922,7 @@ async function callClaudeAPI(messages, maxTokens = 1500, system = null) {
         method: 'POST',
         headers: reqHeaders,
         body: JSON.stringify(bodyObj),
-        signal: AbortSignal.timeout(60000),
+        signal: AbortSignal.timeout(timeoutMs),
       });
 
       if (res.ok) return await res.json();
@@ -3435,7 +3774,7 @@ function toggleTheme() {
 
 // ─── Restore last active tab on page load ──────────────────────────────────
 const savedTab = localStorage.getItem('active_tab');
-if (savedTab && ['leads','applications','coverletter'].includes(savedTab)) {
+if (savedTab && ['leads','applications','coverletter','interviewprep'].includes(savedTab)) {
   switchTab(savedTab);
 }
 
