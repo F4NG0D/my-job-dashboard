@@ -139,6 +139,38 @@
 
     .header-meta { text-align: right; flex-shrink: 0; }
     .last-updated { font-size: 12px; color: var(--text-muted); }
+    .job-board-card {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 28px 22px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--card);
+      text-decoration: none;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .job-board-card:hover {
+      background: var(--card-hover, var(--surface));
+      border-color: var(--accent2);
+    }
+    .job-board-favicon {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .job-board-info { flex: 1; min-width: 0; }
+    .job-board-name { font-weight: 700; font-size: 16px; }
+    .job-board-domain { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .job-board-arrow { opacity: 0.35; font-size: 16px; flex-shrink: 0; }
+    @media (max-width: 600px) {
+      #panel-leads > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+      }
+    }
     .job-count { font-size: 13px; font-weight: 600; color: var(--accent2); }
 
     /* ── Tab panels ── */
@@ -902,7 +934,7 @@
 
     <nav class="tab-nav">
       <button class="tab-btn active" onclick="switchTab('leads')" id="btn-leads">
-        🔍 Job Leads <span class="tab-pill" id="pill-leads">0</span>
+        🌐 Job Boards
       </button>
       <button class="tab-btn" onclick="switchTab('applications')" id="btn-applications">
         📋 My Applications <span class="tab-pill" id="pill-apps">0</span>
@@ -917,7 +949,6 @@
 
     <div class="header-meta" style="display:flex;align-items:center;gap:10px">
       <div class="job-count" id="header-count">Loading…</div>
-      <div class="last-updated" id="last-updated"></div>
       <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
       <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
     </div>
@@ -926,7 +957,7 @@
 
 <!-- mobile tab row -->
 <div class="mobile-tabs">
-  <button class="filter-btn active" onclick="switchTab('leads')"        id="mbtn-leads">🔍 Job Leads</button>
+  <button class="filter-btn active" onclick="switchTab('leads')"        id="mbtn-leads">🌐 Job Boards</button>
   <button class="filter-btn"        onclick="switchTab('applications')" id="mbtn-applications">📋 Applications</button>
   <button class="filter-btn"        onclick="switchTab('coverletter')"  id="mbtn-coverletter">✍️ Cover Letter</button>
   <button class="filter-btn"        onclick="switchTab('interviewprep')"  id="mbtn-interviewprep">🎯 Interview Prep</button>
@@ -935,57 +966,101 @@
 <!-- ═══════════════════════════════ MAIN ════════════════════════════════ -->
 <main>
 
-  <!-- ───────────── TAB 1: JOB LEADS ───────────── -->
+  <!-- ───────────── TAB 1: JOB BOARDS ───────────── -->
   <div id="panel-leads" class="tab-panel active">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:24px 0">
 
-    <div class="controls">
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input type="search" id="leads-search" placeholder="Search roles, companies…" oninput="renderLeads()" />
-      </div>
-      <div class="filter-group">
-        <button class="filter-btn active" data-lcat="All"                onclick="setLeadFilter('All')">All</button>
-        <button class="filter-btn" data-lcat="Investment Banking"        onclick="setLeadFilter('Investment Banking')">IB</button>
-        <button class="filter-btn" data-lcat="Corporate Finance"         onclick="setLeadFilter('Corporate Finance')">Corp Finance</button>
-        <button class="filter-btn" data-lcat="FP&A"                      onclick="setLeadFilter('FP&A')">FP&amp;A</button>
-        <button class="filter-btn" data-lcat="Markets / S&T"             onclick="setLeadFilter('Markets / S&T')">Markets / S&T</button>
-        <button class="filter-btn" data-lcat="Advisory"                  onclick="setLeadFilter('Advisory')">Advisory</button>
-        <button class="filter-btn" data-lcat="Private Credit"            onclick="setLeadFilter('Private Credit')">Private Credit</button>
-        <button class="filter-btn" data-lcat="Asset Management"          onclick="setLeadFilter('Asset Management')">Asset Mgmt</button>
-      </div>
-      <select class="sort-select" id="leads-sort" onchange="renderLeads()">
-        <option value="date">Newest first</option>
-        <option value="fit">Best fit first</option>
-        <option value="company">Company A–Z</option>
-      </select>
-      <button class="icon-btn" id="leads-refresh-btn" onclick="refreshLeads()" title="Refresh leads">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
-        </svg>
-      </button>
+      <a href="https://www.linkedin.com/jobs/" target="_blank" rel="noopener noreferrer" class="job-board-card">
+        <img src="https://www.google.com/s2/favicons?domain=linkedin.com&sz=64" class="job-board-favicon" />
+        <div class="job-board-info">
+          <div class="job-board-name">LinkedIn Jobs</div>
+          <div class="job-board-domain">linkedin.com</div>
+        </div>
+        <span class="job-board-arrow">↗</span>
+      </a>
+
+      <a href="https://fordham.joinhandshake.com/job-search/10683063?page=1&per_page=25" target="_blank" rel="noopener noreferrer" class="job-board-card">
+        <img src="https://www.google.com/s2/favicons?domain=joinhandshake.com&sz=64" class="job-board-favicon" />
+        <div class="job-board-info">
+          <div class="job-board-name">Fordham Handshake</div>
+          <div class="job-board-domain">joinhandshake.com</div>
+        </div>
+        <span class="job-board-arrow">↗</span>
+      </a>
+
+      <a href="https://www.efinancialcareers.com/" target="_blank" rel="noopener noreferrer" class="job-board-card">
+        <img src="https://www.google.com/s2/favicons?domain=efinancialcareers.com&sz=64" class="job-board-favicon" />
+        <div class="job-board-info">
+          <div class="job-board-name">eFinancialCareers</div>
+          <div class="job-board-domain">efinancialcareers.com</div>
+        </div>
+        <span class="job-board-arrow">↗</span>
+      </a>
+
+      <a href="https://www.wallstreetoasis.com/finance-jobs" target="_blank" rel="noopener noreferrer" class="job-board-card">
+        <img src="https://www.google.com/s2/favicons?domain=wallstreetoasis.com&sz=64" class="job-board-favicon" />
+        <div class="job-board-info">
+          <div class="job-board-name">Wall Street Oasis</div>
+          <div class="job-board-domain">wallstreetoasis.com</div>
+        </div>
+        <span class="job-board-arrow">↗</span>
+      </a>
+
+      <a href="https://my.greenhouse.io/jobs" target="_blank" rel="noopener noreferrer" class="job-board-card">
+        <img src="https://www.google.com/s2/favicons?domain=greenhouse.io&sz=64" class="job-board-favicon" />
+        <div class="job-board-info">
+          <div class="job-board-name">Greenhouse</div>
+          <div class="job-board-domain">greenhouse.io</div>
+        </div>
+        <span class="job-board-arrow">↗</span>
+      </a>
+
+      <a href="https://www.indeed.com/" target="_blank" rel="noopener noreferrer" class="job-board-card">
+        <img src="https://www.google.com/s2/favicons?domain=indeed.com&sz=64" class="job-board-favicon" />
+        <div class="job-board-info">
+          <div class="job-board-name">Indeed</div>
+          <div class="job-board-domain">indeed.com</div>
+        </div>
+        <span class="job-board-arrow">↗</span>
+      </a>
+
+      <a href="https://www.glassdoor.com/Job/" target="_blank" rel="noopener noreferrer" class="job-board-card">
+        <img src="https://www.google.com/s2/favicons?domain=glassdoor.com&sz=64" class="job-board-favicon" />
+        <div class="job-board-info">
+          <div class="job-board-name">Glassdoor</div>
+          <div class="job-board-domain">glassdoor.com</div>
+        </div>
+        <span class="job-board-arrow">↗</span>
+      </a>
+
+      <a href="https://www.newgrad-jobs.com/?k=af" target="_blank" rel="noopener noreferrer" class="job-board-card">
+        <img src="https://www.google.com/s2/favicons?domain=newgrad-jobs.com&sz=64" class="job-board-favicon" />
+        <div class="job-board-info">
+          <div class="job-board-name">New Grad Jobs</div>
+          <div class="job-board-domain">newgrad-jobs.com</div>
+        </div>
+        <span class="job-board-arrow">↗</span>
+      </a>
+
+      <a href="https://www.buysidecareers.com/" target="_blank" rel="noopener noreferrer" class="job-board-card">
+        <img src="https://www.google.com/s2/favicons?domain=buysidecareers.com&sz=64" class="job-board-favicon" />
+        <div class="job-board-info">
+          <div class="job-board-name">Buyside Careers</div>
+          <div class="job-board-domain">buysidecareers.com</div>
+        </div>
+        <span class="job-board-arrow">↗</span>
+      </a>
+
+      <a href="https://www.selbyjennings.com/jobs" target="_blank" rel="noopener noreferrer" class="job-board-card">
+        <img src="https://www.google.com/s2/favicons?domain=selbyjennings.com&sz=64" class="job-board-favicon" />
+        <div class="job-board-info">
+          <div class="job-board-name">Selby Jennings</div>
+          <div class="job-board-domain">selbyjennings.com</div>
+        </div>
+        <span class="job-board-arrow">↗</span>
+      </a>
+
     </div>
-
-    <div class="stats-strip">
-      <div class="stat">
-        <div class="stat-dot" style="background:var(--strong)"></div>
-        <div><div class="stat-val" id="ls-strong">0</div><div class="stat-label">Strong Fit</div></div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat">
-        <div class="stat-dot" style="background:var(--good)"></div>
-        <div><div class="stat-val" id="ls-good">0</div><div class="stat-label">Good Fit</div></div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat">
-        <div class="stat-dot" style="background:var(--stretch)"></div>
-        <div><div class="stat-val" id="ls-stretch">0</div><div class="stat-label">Stretch</div></div>
-      </div>
-      <div class="stat" style="margin-left:auto">
-        <div><div class="stat-val" id="ls-new" style="color:var(--accent2)">0</div><div class="stat-label">Added today</div></div>
-      </div>
-    </div>
-
-    <div class="grid" id="leads-grid"></div>
   </div>
 
   <!-- ───────────── TAB 2: MY APPLICATIONS ───────────── -->
