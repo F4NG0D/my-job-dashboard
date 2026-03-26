@@ -1836,10 +1836,6 @@ function spinBtn(id, fn) {
   });
 }
 
-function refreshLeads() {
-  spinBtn('leads-refresh-btn', searchLiveJobLeads);
-}
-
 function refreshApps() {
   // Show loading state before fetch
   document.getElementById('apps-content').innerHTML =
