@@ -1441,8 +1441,6 @@
 const ANTHROPIC_KEY = '';
 // ↑↑↑  e.g.  const ANTHROPIC_KEY = 'sk-ant-api03-…';                      ↑↑↑
 
-const LEADS_URL = 'jobs.json';
-
 // ─── Supabase config ───────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://daouwljufwukhbrqfhoh.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhb3V3bGp1Znd1a2hicnFmaG9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MDAwODAsImV4cCI6MjA4OTE3NjA4MH0.HT_iiVEDdwoeogXnN_laDY4F8lyaUVaSUMRbFCB90rs';
@@ -1462,14 +1460,9 @@ const SB_POST_HEADERS = {
 
 // ─── Gamification — 1 XP per submitted app, 10 XP per level ────────────────
 
-// ─── Inline jobs (updated by scheduled task — works when opened as a local file) ──
-window.INLINE_JOBS = [{"id":"goldman-sachs-ib-new-analyst-20260313","title":"Investment Banking New Analyst","company":"Goldman Sachs","category":"Investment Banking","location":"New York, NY","salary":"$110,000–$125,000","fit":"Strong Fit","description":"Goldman Sachs' New Analyst Program places top graduates directly on live M&A, ECM, and DCM deals across industry verticals. Antonio's 6 live deals at OCBC Securities—including M&A and IPO mandates totaling ~$260M—closely mirrors the analyst experience GS expects from Day One. Indonesian fluency is a genuine edge for GS's Asia-Pacific coverage teams.","link":"https://www.goldmansachs.com/careers/students/programs-and-internships/americas/new-analyst-program","date_added":"2026-03-13T10:00:00"},{"id":"jpmorgan-ib-fulltime-analyst-20260313","title":"Investment Banking Full-Time Analyst","company":"JPMorgan Chase","category":"Investment Banking","location":"New York, NY","salary":"$110,000–$120,000","fit":"Strong Fit","description":"JPMorgan's full-time IB Analyst role involves financial modeling, pitchbook creation, and supporting M&A and capital markets transactions from pitch to close. Antonio's hands-on deal execution at OCBC—building CIMs, pitchbooks, and trading comps—directly maps to JPMorgan's analyst responsibilities. Minimum preferred GPA of 3.2; Antonio's 3.74 is well above threshold.","link":"https://careers.jpmorgan.com/us/en/students/programs/investment-banking-fulltime-analyst","date_added":"2026-03-13T10:00:00"},{"id":"morgan-stanley-ib-analyst-20260313","title":"Investment Banking Analyst","company":"Morgan Stanley","category":"Investment Banking","location":"New York, NY","salary":"$110,000–$125,000","fit":"Strong Fit","description":"Morgan Stanley's IB Analyst program offers exposure to high-profile M&A, ECM, and DCM transactions across sector and regional coverage teams. Antonio's OCBC IB experience, fluency in Indonesian, and proficiency with Bloomberg Terminal and Capital IQ align well with Morgan Stanley's Asia-linked and global coverage requirements.","link":"https://www.morganstanley.com/people-opportunities/students-graduates","date_added":"2026-03-13T10:00:00"},{"id":"evercore-ib-analyst-20260313","title":"Investment Banking Analyst","company":"Evercore","category":"Investment Banking","location":"New York, NY","salary":"$110,000–$130,000","fit":"Strong Fit","description":"Evercore's elite boutique analyst role focuses on M&A advisory, restructuring, and capital markets across coverage and product groups. Antonio's direct M&A and IPO deal experience at OCBC—including pitchbook and CIM construction—mirrors Evercore analyst work, and his GPA of 3.74 meets the firm's high academic bar. Applications are reviewed on a rolling basis; apply promptly.","link":"https://evercore.tal.net/candidate/jobboard/vacancy/2/adv/","date_added":"2026-03-13T10:00:00"},{"id":"moelis-ib-analyst-20260313","title":"Investment Banking Analyst","company":"Moelis & Company","category":"Investment Banking","location":"New York, NY","salary":"$110,000–$130,000","fit":"Strong Fit","description":"Moelis & Company is an independent advisory firm known for M&A, restructuring, and capital raising across industry verticals. The analyst role involves financial modeling, valuation analysis, and transaction execution support on live deals—exactly the work Antonio performed on 6 active mandates at OCBC Securities. Formal application portal is open now; rolling interviews expected through June.","link":"https://moelis-careers.tal.net/candidate/jobboard/vacancy/2/adv/","date_added":"2026-03-13T10:00:00"},{"id":"centerview-partners-ib-analyst-20260313","title":"Investment Banking Analyst","company":"Centerview Partners","category":"Investment Banking","location":"New York, NY","salary":"$120,000–$135,000","fit":"Strong Fit","description":"Centerview Partners is one of the most prestigious independent M&A advisory boutiques globally. The analyst role provides direct exposure to complex, high-value M&A transactions alongside senior bankers. Antonio's M&A and IPO deal experience at OCBC, combined with his Magna Cum Laude GPA from Fordham, makes him a competitive candidate; Centerview accepts applications on a rolling basis.","link":"https://www.centerviewpartners.com/careers.aspx","date_added":"2026-03-13T10:00:00"},{"id":"houlihan-lokey-ib-analyst-20260313","title":"Financial Analyst – Investment Banking","company":"Houlihan Lokey","category":"Investment Banking","location":"New York, NY","salary":"$100,000–$120,000","fit":"Strong Fit","description":"Houlihan Lokey is a leading global investment bank specializing in M&A advisory, restructuring, and corporate finance. The full-time analyst role involves financial modeling, valuation work, and transaction execution across Consumer/FMCG, Healthcare, and Industrials—sectors aligning with Antonio's priority industries. His hands-on deal experience at OCBC gives him a practical edge over candidates without live deal exposure.","link":"https://hl.wd1.myworkdayjobs.com/Campus","date_added":"2026-03-13T10:00:00"},{"id":"citi-finance-fulltime-analyst-20260313","title":"Finance Full-Time Analyst (FP&A Rotational)","company":"Citi","category":"FP&A","location":"New York, NY","salary":"$85,000–$100,000","fit":"Good Fit","description":"Citi's two-year Financial Analyst Program rotates new graduates through FP&A, Controllers, Treasury, and business-aligned Finance units, building deep corporate finance skills. Antonio's Global Business Finance degree and Excel modeling experience provide a solid foundation; the program targets December 2025–June 2026 graduates, fitting his December 2025 graduation exactly.","link":"https://jobs.citi.com/job/new-york/functions-finance-full-time-analyst-new-york-usa-2026/287/85240789264","date_added":"2026-03-13T10:00:00"},{"id":"nomura-global-markets-analyst-20260313","title":"Global Markets Full-Time Analyst","company":"Nomura","category":"Markets / S&T","location":"New York, NY","salary":"$100,000–$115,000","fit":"Good Fit","description":"Nomura's Global Markets Full-Time Analyst Program places new graduates across equities, fixed income, and derivatives desks with direct exposure to trading and structuring. Antonio's Indonesian fluency and background in APAC deal-making is a genuine differentiator at a Japanese bank with significant Asia-Pacific coverage. Bloomberg Terminal proficiency aligns directly with markets desk requirements.","link":"https://nomuracampus.tal.net/vx/mobile-0/appcentre-ext/brand-4/candidate/so/pm/1/pl/1/opp/1285-2026-Global-Markets-Full-Time-Analyst-Program-Equity-Digital-Office/en-GB","date_added":"2026-03-13T10:00:00"},{"id":"mufg-ib-analyst-20260313","title":"Investment Banking Analyst","company":"MUFG","category":"Investment Banking","location":"New York, NY","salary":"$95,000–$115,000","fit":"Strong Fit","description":"MUFG's Investment Banking Analyst role supports M&A, ECM, and DCM transactions for corporate and institutional clients across the Americas and APAC. Antonio's OCBC deal experience—spanning Indonesian and broader Southeast Asian markets—combined with his Indonesian fluency is a standout advantage at a major Japanese bank with deep APAC connectivity. Role starts July 2026.","link":"https://prosple.com/graduate-employers/mufg-bank/jobs-internships/investment-banking-analyst-new-york","date_added":"2026-03-13T10:00:00"},{"id":"mizuho-analyst-program-20260313","title":"Full-Time Analyst – Finance","company":"Mizuho Americas","category":"Corporate Finance","location":"New York, NY","salary":"$90,000–$110,000","fit":"Good Fit","description":"Mizuho's three-year full-time Analyst Program places graduates in New York across corporate finance, capital markets, and advisory functions with strong APAC connectivity. Antonio's background in Southeast Asian deal-making at OCBC, combined with Indonesian fluency, positions him as a strong candidate for Mizuho's growing APAC-linked coverage platform in North America.","link":"https://www.mizuhogroup.com/americas/careers/campus-recruiting","date_added":"2026-03-13T10:00:00"},{"id":"raymond-james-ib-analyst-20260313","title":"Investment Banking Analyst I – Capital Structure Advisory","company":"Raymond James","category":"Investment Banking","location":"New York, NY","salary":"$95,000–$110,000","fit":"Good Fit","description":"Raymond James offers a full-time IB Analyst program with multi-product exposure across M&A, equity, debt, and restructuring. The firm's 14-office US platform offers meaningful deal flow for junior bankers, and the Capital Structure Advisory group focuses on leveraged finance and restructuring—a natural extension of Antonio's M&A and capital markets experience at OCBC.","link":"https://www.linkedin.com/jobs/view/raymond-james-2026-investment-banking-analyst-i-capital-structure-advisory-new-york-ny-application-via-wayup-at-wayup-4371269028","date_added":"2026-03-13T10:00:00"},{"id":"bny-mellon-analyst-program-20260313","title":"Analyst Program – Asset Management","company":"BNY Mellon","category":"Asset Management","location":"New York, NY","salary":"$80,000–$100,000","fit":"Good Fit","description":"BNY Mellon's 24-month rotational Analyst Program places graduates across investment management, asset servicing, and research functions. Antonio's FactSet and Bloomberg Terminal skills translate well into BNY's research-oriented roles, and experience supporting institutional investors at OCBC provides relevant context for asset management workflows.","link":"https://www.bny.com/corporate/global/en/careers/students/analyst-program.html","date_added":"2026-03-13T10:00:00"}];
-window.INLINE_LAST_UPDATED = "2026-03-13T01:05:58";
 
 // ─── State ─────────────────────────────────────────────────────────────────
-let ALL_LEADS = [];
 let ALL_APPS  = [];
-let activeLeadFilter = 'All';
 let activeAppFilter  = 'All';
 let activeTab = 'leads';
 const TAB_ORDER = ['leads', 'applications', 'coverletter', 'interviewprep'];
@@ -1477,18 +1470,6 @@ let ALL_PREP_SHEETS  = [];
 let activePrepAppId  = null;
 let prepSheetsLoaded = false;
 
-// ─── Category colours ──────────────────────────────────────────────────────
-const CAT_COLORS = {
-  'Investment Banking': '#4f6ef7',
-  'Corporate Finance':  '#94a3b8',
-  'FP&A':               '#a78bfa',
-  'Markets / S&T':      '#46d160',
-  'Advisory':           '#f59e0b',
-  'Private Credit':     '#fb7185',
-  'Asset Management':   '#34d399',
-  'Corporate Dev':      '#60a5fa',
-};
-const catColor = c => CAT_COLORS[c] || '#8b90b0';
 
 // ─── Status options ─────────────────────────────────────────────────────────
 const STATUS_OPTIONS = [
@@ -1645,7 +1626,7 @@ function switchTab(tab) {
 function updateHeaderCount() {
   const el = document.getElementById('header-count');
   if (activeTab === 'leads') {
-    el.textContent = `${ALL_LEADS.length} lead${ALL_LEADS.length !== 1 ? 's' : ''}`;
+    el.textContent = '10 boards';
     el.style.color = 'var(--accent2)';
   } else {
     const submitted = ALL_APPS.filter(a => {
@@ -1655,141 +1636,6 @@ function updateHeaderCount() {
     el.textContent = `${submitted} submitted`;
     el.style.color = 'var(--accent2)';
   }
-}
-
-// ─── TAB 1: LEADS ──────────────────────────────────────────────────────────
-function setLeadFilter(cat) {
-  activeLeadFilter = cat;
-  document.querySelectorAll('[data-lcat]').forEach(b =>
-    b.classList.toggle('active', b.dataset.lcat === cat));
-  renderLeads();
-}
-
-function renderLeads() {
-  const q    = (document.getElementById('leads-search')?.value || '').toLowerCase();
-  const sort = document.getElementById('leads-sort')?.value || 'date';
-  const fitOrder = {'Strong Fit':0,'Good Fit':1,'Stretch':2};
-
-  let jobs = ALL_LEADS.filter(j => {
-    const matchCat = activeLeadFilter === 'All' || j.category === activeLeadFilter;
-    const matchQ   = !q || [j.title,j.company,j.description,j.location].join(' ').toLowerCase().includes(q);
-    return matchCat && matchQ;
-  });
-
-  jobs = [...jobs].sort((a,b) => {
-    if (sort === 'fit')    return (fitOrder[a.fit]??9) - (fitOrder[b.fit]??9);
-    if (sort === 'company') return a.company.localeCompare(b.company);
-    return new Date(b.date_added||0) - new Date(a.date_added||0);
-  });
-
-  document.getElementById('ls-strong').textContent  = ALL_LEADS.filter(j=>(j.fit||'').includes('Strong')).length;
-  document.getElementById('ls-good').textContent    = ALL_LEADS.filter(j=>(j.fit||'').includes('Good')&&!(j.fit||'').includes('Strong')).length;
-  document.getElementById('ls-stretch').textContent = ALL_LEADS.filter(j=>(j.fit||'').includes('Stretch')).length;
-  document.getElementById('ls-new').textContent     = ALL_LEADS.filter(j=>isNew(j.date_added)).length;
-  document.getElementById('pill-leads').textContent = ALL_LEADS.length;
-
-  const grid = document.getElementById('leads-grid');
-  if (!jobs.length) {
-    grid.innerHTML = `<div class="empty">
-      <div class="empty-icon">📭</div>
-      <h2>${ALL_LEADS.length===0?'No leads yet':'No matches'}</h2>
-      <p>${ALL_LEADS.length===0
-        ? 'Your daily search runs every morning at 10 AM. New leads appear here automatically.'
-        : 'Try adjusting your filters or search query.'}</p>
-    </div>`;
-    return;
-  }
-
-  grid.innerHTML = jobs.map(j => {
-    const color = catColor(j.category||'');
-    const nb = isNew(j.date_added) ? '<span class="new-badge">NEW</span>' : '';
-    return `<div class="card">
-      <div class="card-header">
-        <div style="display:flex;gap:12px;flex:1;min-width:0">
-          <div class="company-logo">${initials(j.company)}</div>
-          <div class="card-title-row">
-            <div class="card-title">${j.title}${nb}</div>
-            <div class="card-company">${j.company}</div>
-          </div>
-        </div>
-        ${j.fit?`<span class="fit-badge ${fitClass(j.fit)}">${j.fit}</span>`:''}
-      </div>
-      <div class="card-tags">
-        ${j.category?`<span class="tag" style="background:${color}22;color:${color}">${j.category}</span>`:''}
-        ${j.location?`<span class="tag" style="background:rgba(255,255,255,0.07);color:var(--text-muted)">📍 ${j.location}</span>`:''}
-      </div>
-      <div class="card-desc">${j.description||'No description available.'}</div>
-      <div class="card-footer">
-        <div class="card-meta">
-          ${j.salary?`<div class="card-salary">${j.salary}</div>`:''}
-          <div class="card-date">Added ${fmtDate(j.date_added)}</div>
-        </div>
-        <div class="btn-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <button class="track-btn" onclick="addLeadToApps('${j.id}')">+ Track</button>
-          ${j.link?`<a class="apply-btn" href="${j.link}" target="_blank" rel="noopener">Search & Apply →</a>`:''}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function addLeadToApps(id) {
-  const lead = ALL_LEADS.find(l => l.id === id);
-  if (!lead) return;
-
-  // 1. Reset all form fields
-  document.getElementById('f-company').value            = '';
-  document.getElementById('f-role').value               = '';
-  document.getElementById('f-salary').value             = '';
-  document.getElementById('f-link').value               = '';
-  document.getElementById('f-notes').value              = '';
-  document.getElementById('f-date-added').value         = '';
-  document.getElementById('f-date-submitted').value     = '';
-  document.getElementById('f-fetch-url').value          = '';
-  document.getElementById('f-fetch-status').textContent = '';
-  document.getElementById('f-status').value             = 'Have Not Applied';
-
-  // 2. Pre-fill from lead
-  document.getElementById('f-company').value    = lead.company || '';
-  document.getElementById('f-role').value       = lead.title   || '';
-  document.getElementById('f-salary').value     = lead.salary  || '';
-  document.getElementById('f-link').value       = lead.link    || '';
-  document.getElementById('f-date-added').value = new Date().toISOString().split('T')[0];
-
-  // 3. Open modal
-  document.getElementById('modal-form-wrap').style.display = '';
-  document.getElementById('modal-success').style.display   = 'none';
-  document.getElementById('modal-submit-btn').disabled     = false;
-  document.getElementById('modal-submit-btn').textContent  = 'Save Application';
-  document.getElementById('add-modal').classList.add('open');
-}
-
-async function loadLeads() {
-  // Always load inline data first — works when opened as a local file
-  ALL_LEADS = window.INLINE_JOBS || [];
-  if (window.INLINE_LAST_UPDATED) {
-    document.getElementById('last-updated').textContent =
-      'Leads updated ' + new Date(window.INLINE_LAST_UPDATED).toLocaleString('en-US',
-        {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
-  }
-  renderLeads();
-  updateHeaderCount();
-
-  // Also try fetching jobs.json (works on GitHub Pages / local server — gets fresher data if available)
-  try {
-    const res  = await fetch(LEADS_URL + '?v=' + Date.now());
-    const data = await res.json();
-    if (data.jobs && data.jobs.length >= ALL_LEADS.length) {
-      ALL_LEADS = data.jobs;
-      if (data.last_updated) {
-        document.getElementById('last-updated').textContent =
-          'Leads updated ' + new Date(data.last_updated).toLocaleString('en-US',
-            {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
-      }
-      renderLeads();
-      updateHeaderCount();
-    }
-  } catch(e) { /* fine — inline data already loaded */ }
 }
 
 // ─── TAB 2: APPLICATIONS ───────────────────────────────────────────────────
@@ -3853,7 +3699,6 @@ if (savedTab && ['leads','applications','coverletter','interviewprep'].includes(
   switchTab(savedTab);
 }
 
-loadLeads();
 loadApps();
 </script>
 </body>
