@@ -937,7 +937,10 @@
         🌐 Job Boards
       </button>
       <button class="tab-btn" onclick="switchTab('applications')" id="btn-applications">
-        📋 My Applications <span class="tab-pill" id="pill-apps">0</span>
+        📋 Full-time <span class="tab-pill" id="pill-apps">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('parttime')" id="btn-parttime">
+        ⏱ Part-time <span class="tab-pill" id="pill-pt">0</span>
       </button>
       <button class="tab-btn" onclick="switchTab('coverletter')" id="btn-coverletter">
         ✍️ Cover Letter Generator
@@ -958,7 +961,8 @@
 <!-- mobile tab row -->
 <div class="mobile-tabs">
   <button class="filter-btn active" onclick="switchTab('leads')"        id="mbtn-leads">🌐 Job Boards</button>
-  <button class="filter-btn"        onclick="switchTab('applications')" id="mbtn-applications">📋 Applications</button>
+  <button class="filter-btn"        onclick="switchTab('applications')" id="mbtn-applications">📋 Full-time</button>
+  <button class="filter-btn"        onclick="switchTab('parttime')"    id="mbtn-parttime">⏱ Part-time</button>
   <button class="filter-btn"        onclick="switchTab('coverletter')"  id="mbtn-coverletter">✍️ Cover Letter</button>
   <button class="filter-btn"        onclick="switchTab('interviewprep')"  id="mbtn-interviewprep">🎯 Interview Prep</button>
 </div>
@@ -1139,6 +1143,87 @@
 
     <!-- Table or error -->
     <div id="apps-content">
+      <div class="loading-msg">Loading applications…</div>
+    </div>
+
+  </div>
+
+  <!-- ───────────── TAB: PART-TIME TRACKER ───────────── -->
+  <div id="panel-parttime" class="tab-panel">
+
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="pt-search" placeholder="Search company, role…" oninput="renderApps('parttime')" />
+      </div>
+      <div class="filter-group">
+        <button class="filter-btn active" data-ptcat="All"                         onclick="setAppFilter('All','parttime')">All</button>
+        <button class="filter-btn" data-ptcat="Submitted - Pending Response"       onclick="setAppFilter('Submitted - Pending Response','parttime')">⏳ Pending</button>
+        <button class="filter-btn" data-ptcat="Rejected"                           onclick="setAppFilter('Rejected','parttime')">✕ Rejected</button>
+        <button class="filter-btn" data-ptcat="Interview"                          onclick="setAppFilter('Interview','parttime')">🎯 Interview</button>
+        <button class="filter-btn" data-ptcat="Not Yet Applied"                    onclick="setAppFilter('Not Yet Applied','parttime')">📌 Not Applied</button>
+        <button class="filter-btn" data-ptcat="Stale"                              onclick="setAppFilter('Stale','parttime')">Stale</button>
+      </div>
+      <select class="sort-select" id="pt-sort" onchange="renderApps('parttime')">
+        <option value="date_added">Date Added ↓</option>
+        <option value="submitted">Date Submitted ↓</option>
+        <option value="company">Company A–Z</option>
+        <option value="status">Status</option>
+      </select>
+      <button class="icon-btn" id="pt-refresh-btn" onclick="refreshPTApps()" title="Refresh applications">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
+        </svg>
+      </button>
+      <button class="add-btn" onclick="openAddModal('parttime')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span class="add-btn-label">Add Application</span>
+      </button>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="stats-strip" id="pt-stats">
+      <div class="stat">
+        <div class="stat-dot" style="background:var(--text-muted)"></div>
+        <div><div class="stat-val" id="pt-total">0</div><div class="stat-label">Total Tracked</div></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-dot" style="background:var(--status-pending)"></div>
+        <div><div class="stat-val" id="pt-pending">0</div><div class="stat-label">Pending</div></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-dot" style="background:var(--status-rejected)"></div>
+        <div><div class="stat-val" id="pt-rejected">0</div><div class="stat-label">Rejected</div></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-dot" style="background:var(--status-interview)"></div>
+        <div><div class="stat-val" id="pt-interview">0</div><div class="stat-label">Interviews</div></div>
+      </div>
+      <div class="stat" style="margin-left:auto">
+        <div><div class="stat-val" id="pt-rate" style="color:var(--accent2)">—</div><div class="stat-label">Response Rate</div></div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat" id="pt-level-stat">
+        <div>
+          <div class="stat-val" id="pt-level" style="color:var(--stretch)">⚡ Lvl 0</div>
+          <div class="level-xp-row">
+            <div class="level-bar-wrap">
+              <div class="level-bar-fill" id="pt-level-fill" style="width:0%"></div>
+            </div>
+            <div class="level-xp-label" id="pt-level-xp">0 / 10</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pipeline bar -->
+    <div class="pipeline-bar" id="pt-pipeline-bar" title="Application pipeline breakdown"></div>
+
+    <!-- Table or empty state -->
+    <div id="pt-content">
       <div class="loading-msg">Loading applications…</div>
     </div>
 
@@ -1462,10 +1547,13 @@ const SB_POST_HEADERS = {
 
 
 // ─── State ─────────────────────────────────────────────────────────────────
-let ALL_APPS  = [];
+let ALL_APPS     = [];
+let ALL_PT_APPS  = [];
+let ACTIVE_TRACKER   = 'fulltime'; // 'fulltime' | 'parttime'
 let activeAppFilter  = 'All';
+let activePTFilter   = 'All';
 let activeTab = 'leads';
-const TAB_ORDER = ['leads', 'applications', 'coverletter', 'interviewprep'];
+const TAB_ORDER = ['leads', 'applications', 'parttime', 'coverletter', 'interviewprep'];
 let ALL_PREP_SHEETS  = [];
 let activePrepAppId  = null;
 let prepSheetsLoaded = false;
@@ -1614,11 +1702,14 @@ function switchTab(tab) {
     const banner = document.getElementById('cl-api-banner');
     if (banner) banner.style.display = hasKey ? 'none' : 'flex';
   }
+  if (tab === 'parttime' && !ALL_PT_APPS.length) {
+    loadApps('parttime');
+  }
   if (tab === 'interviewprep') {
     if (!prepSheetsLoaded) {
       loadPrepSheets();
     } else {
-      renderPrepSidebar(); // re-render in case app statuses changed since last visit
+      renderPrepSidebar();
     }
   }
 }
@@ -1627,6 +1718,13 @@ function updateHeaderCount() {
   const el = document.getElementById('header-count');
   if (activeTab === 'leads') {
     el.textContent = '10 boards';
+    el.style.color = 'var(--accent2)';
+  } else if (activeTab === 'parttime') {
+    const submitted = ALL_PT_APPS.filter(a => {
+      const s = (a.status||'').toLowerCase();
+      return s.includes('submit') || s.includes('pending') || s.includes('reject') || s.includes('interview');
+    }).length;
+    el.textContent = `${submitted} submitted`;
     el.style.color = 'var(--accent2)';
   } else {
     const submitted = ALL_APPS.filter(a => {
@@ -1639,38 +1737,60 @@ function updateHeaderCount() {
 }
 
 // ─── TAB 2: APPLICATIONS ───────────────────────────────────────────────────
-function setAppFilter(cat) {
-  activeAppFilter = cat;
-  document.querySelectorAll('[data-scat]').forEach(b =>
-    b.classList.toggle('active', b.dataset.scat === cat));
-  renderApps();
+function setAppFilter(cat, ctx = 'fulltime') {
+  if (ctx === 'parttime') {
+    activePTFilter = cat;
+    document.querySelectorAll('#panel-parttime [data-ptcat]').forEach(b =>
+      b.classList.toggle('active', b.dataset.ptcat === cat));
+    renderApps('parttime');
+  } else {
+    activeAppFilter = cat;
+    document.querySelectorAll('#panel-applications [data-scat]').forEach(b =>
+      b.classList.toggle('active', b.dataset.scat === cat));
+    renderApps('fulltime');
+  }
 }
 
-function renderApps() {
-  if (!ALL_APPS.length) return;
+function renderApps(ctx = 'fulltime') {
+  const isPT    = ctx === 'parttime';
+  const data    = isPT ? ALL_PT_APPS : ALL_APPS;
+  const pfx     = isPT ? 'pt' : 'as';
+  const contId  = isPT ? 'pt-content'     : 'apps-content';
+  const searchId = isPT ? 'pt-search'     : 'apps-search';
+  const sortId  = isPT ? 'pt-sort'        : 'apps-sort';
+  const barId   = isPT ? 'pt-pipeline-bar': 'pipeline-bar';
+  const pillId  = isPT ? 'pill-pt'        : 'pill-apps';
+  const filter  = isPT ? activePTFilter   : activeAppFilter;
+  const sortField = isPT ? ptSortField    : appSortField;
 
-  const q    = (document.getElementById('apps-search')?.value || '').toLowerCase();
-  const sort = document.getElementById('apps-sort')?.value || 'date_added';
+  if (!data.length) {
+    const cont = document.getElementById(contId);
+    if (cont) cont.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><h2>No applications yet</h2><p>Click "Add Application" to get started.</p></div>`;
+    return;
+  }
+
+  const q    = (document.getElementById(searchId)?.value || '').toLowerCase();
+  const sort = document.getElementById(sortId)?.value || sortField;
 
   // Stats
-  const submitted = ALL_APPS.filter(a=>{const s=(a.status||'').toLowerCase();return (s.includes('submit')||s.includes('pending'))&&!s.includes('stale');});
-  const rejected  = ALL_APPS.filter(a=>(a.status||'').toLowerCase().includes('reject'));
-  const interview = ALL_APPS.filter(a=>{const s=(a.status||'').toLowerCase();return s.includes('interview')||s.includes('offer');});
+  const submitted = data.filter(a=>{const s=(a.status||'').toLowerCase();return (s.includes('submit')||s.includes('pending'))&&!s.includes('stale');});
+  const rejected  = data.filter(a=>(a.status||'').toLowerCase().includes('reject'));
+  const interview = data.filter(a=>{const s=(a.status||'').toLowerCase();return s.includes('interview')||s.includes('offer');});
   const responded = rejected.length + interview.length;
   const totalSub  = submitted.length + responded;
   const rate      = totalSub > 0 ? Math.round((responded / totalSub) * 100) : 0;
 
-  document.getElementById('as-total').textContent    = ALL_APPS.length;
-  document.getElementById('as-pending').textContent  = submitted.length;
-  document.getElementById('as-rejected').textContent = rejected.length;
-  document.getElementById('as-interview').textContent= interview.length;
-  document.getElementById('as-rate').textContent     = totalSub ? rate + '%' : '—';
-  document.getElementById('pill-apps').textContent   = ALL_APPS.length;
-  updateLevelBar(ALL_APPS);
+  document.getElementById(`${pfx}-total`).textContent    = data.length;
+  document.getElementById(`${pfx}-pending`).textContent  = submitted.length;
+  document.getElementById(`${pfx}-rejected`).textContent = rejected.length;
+  document.getElementById(`${pfx}-interview`).textContent= interview.length;
+  document.getElementById(`${pfx}-rate`).textContent     = totalSub ? rate + '%' : '—';
+  document.getElementById(pillId).textContent            = data.length;
+  updateLevelBar(data, pfx);
 
   // Pipeline bar
-  const bar = document.getElementById('pipeline-bar');
-  bar.innerHTML = [
+  const bar = document.getElementById(barId);
+  if (bar) bar.innerHTML = [
     {pct: submitted.length, color:'var(--status-pending)',  title:'Pending'},
     {pct: rejected.length,  color:'var(--status-rejected)', title:'Rejected'},
     {pct: interview.length, color:'var(--status-interview)',title:'Interview/Offer'},
@@ -1680,9 +1800,9 @@ function renderApps() {
 
   // Filter + sort
   const statusOrder = {'interview':0,'offer':0,'s-interview':0,'pending':1,'submit':1,'stale':2,'reject':3,'not yet':4};
-  let apps = ALL_APPS.filter(a => {
-    const matchStatus = activeAppFilter === 'All' ||
-      (a.status || '').toLowerCase().includes(activeAppFilter.toLowerCase().split(' ')[0]);
+  let apps = data.filter(a => {
+    const matchStatus = filter === 'All' ||
+      (a.status || '').toLowerCase().includes(filter.toLowerCase().split(' ')[0]);
     const matchQ = !q || [a.company, a.role].join(' ').toLowerCase().includes(q);
     return matchStatus && matchQ;
   });
@@ -1698,7 +1818,7 @@ function renderApps() {
     return new Date(b.date_added||0) - new Date(a.date_added||0);
   });
 
-  const cont = document.getElementById('apps-content');
+  const cont = document.getElementById(contId);
   if (!apps.length) {
     cont.innerHTML = `<div class="empty">
       <div class="empty-icon">🔎</div>
@@ -1711,10 +1831,10 @@ function renderApps() {
   cont.innerHTML = `<div class="table-wrap">
     <table>
       <thead><tr>
-        <th onclick="sortApps('company')">Company / Role <span class="sort-arrow">↕</span></th>
-        <th onclick="sortApps('status')">Status <span class="sort-arrow">↕</span></th>
+        <th onclick="sortApps('company','${ctx}')">Company / Role <span class="sort-arrow">↕</span></th>
+        <th onclick="sortApps('status','${ctx}')">Status <span class="sort-arrow">↕</span></th>
         <th>Salary</th>
-        <th onclick="sortApps('submitted')">Submitted <span class="sort-arrow">↕</span></th>
+        <th onclick="sortApps('submitted','${ctx}')">Submitted <span class="sort-arrow">↕</span></th>
         <th style="width:42px"></th>
       </tr></thead>
       <tbody>
@@ -1735,14 +1855,14 @@ function renderApps() {
             <td>
               <select class="status-select ${statusCls(a.status)}"
                 data-id="${safeId}"
-                onchange="updateAppStatus(this.dataset.id, this.value, this)">
+                onchange="updateAppStatus(this.dataset.id, this.value, this, '${ctx}')">
                 ${statusOptionsHtml(a.status)}
               </select>
             </td>
             <td class="tbl-salary">${sal || '<span style="color:var(--text-muted)">—</span>'}</td>
             <td class="tbl-date">${fmtDate(a.date_submitted) !== '—' ? fmtDate(a.date_submitted) : fmtDate(a.date_added)}</td>
             <td class="gear-cell">
-              <button class="row-gear-btn" onclick="openEditModal('${escapedId}')" title="Edit application">⚙️</button>
+              <button class="row-gear-btn" onclick="openEditModal('${escapedId}','${ctx}')" title="Edit application">⚙️</button>
             </td>
           </tr>`;
         }).join('')}
@@ -1752,10 +1872,17 @@ function renderApps() {
 }
 
 let appSortField = 'date_added';
-function sortApps(field) {
-  appSortField = field;
-  document.getElementById('apps-sort').value = field;
-  renderApps();
+let ptSortField  = 'date_added';
+function sortApps(field, ctx = 'fulltime') {
+  if (ctx === 'parttime') {
+    ptSortField = field;
+    document.getElementById('pt-sort').value = field;
+    renderApps('parttime');
+  } else {
+    appSortField = field;
+    document.getElementById('apps-sort').value = field;
+    renderApps('fulltime');
+  }
 }
 
 // CSV parser (handles quoted fields)
@@ -1778,11 +1905,16 @@ function parseCSV(text) {
   return rows;
 }
 
-async function loadApps() {
-  const cont = document.getElementById('apps-content');
+async function loadApps(ctx = 'fulltime') {
+  const isPT    = ctx === 'parttime';
+  const table   = isPT ? 'Part-Time%20Applications' : 'Applications%20Database';
+  const contId  = isPT ? 'pt-content' : 'apps-content';
+  const cont    = document.getElementById(contId);
+
   try {
+    const order = isPT ? '' : '&order=created_at.desc';
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/Applications%20Database?select=*&order=created_at.desc`,
+      `${SUPABASE_URL}/rest/v1/${table}?select=*${order}`,
       { headers: SB_HEADERS }
     );
     if (!res.ok) {
@@ -1791,8 +1923,7 @@ async function loadApps() {
     }
     const data = await res.json();
 
-    // Column names confirmed from Supabase import
-    ALL_APPS = data.map(r => ({
+    const mapped = data.map(r => ({
       id:             r.id                   || '',
       company:        r['Company Name']      || '',
       role:           r['Role']              || '',
@@ -1804,23 +1935,34 @@ async function loadApps() {
       notes:          r['Notes']             || '',
     }));
 
-    renderApps();
+    if (isPT) { ALL_PT_APPS = mapped; }
+    else      { ALL_APPS    = mapped; }
+
+    renderApps(ctx);
     updateHeaderCount();
-    autoMarkStaleApps();
-    if (prepSheetsLoaded) renderPrepSidebar(); // sync sidebar if tab was already opened
+    if (!isPT) {
+      autoMarkStaleApps();
+      if (prepSheetsLoaded) renderPrepSidebar();
+    }
 
   } catch(err) {
-    cont.innerHTML = `<div class="error-box">
+    const tableName = isPT ? 'Part-Time Applications' : 'Applications Database';
+    if (cont) cont.innerHTML = `<div class="error-box">
       <div style="font-size:36px;margin-bottom:12px">⚠️</div>
       <h3>Could not load applications</h3>
       <p>${err.message}</p>
       <p style="margin-top:12px;font-size:12px;color:var(--text-muted)">
-        Make sure your Supabase <strong style="color:var(--text)">Applications Database</strong> table exists
-        and Row Level Security is configured to allow reads.<br>
-        Check the browser console (F12) for more details.
+        Make sure your Supabase <strong style="color:var(--text)">${tableName}</strong> table exists
+        and Row Level Security is configured to allow reads.
       </p>
     </div>`;
   }
+}
+
+function refreshPTApps() {
+  const cont = document.getElementById('pt-content');
+  if (cont) cont.innerHTML = '<div class="loading-msg">Loading applications…</div>';
+  loadApps('parttime');
 }
 
 // ─── Refresh buttons ───────────────────────────────────────────────────────
@@ -1837,15 +1979,16 @@ function spinBtn(id, fn) {
 }
 
 function refreshApps() {
-  // Show loading state before fetch
   document.getElementById('apps-content').innerHTML =
     `<div class="loading-msg">↻ Refreshing applications…</div>`;
-  spinBtn('apps-refresh-btn', loadApps);
+  spinBtn('apps-refresh-btn', () => loadApps('fulltime'));
 }
 
 // ─── Modal ─────────────────────────────────────────────────────────────────
-function openAddModal() {
-  // Set today's date as default
+function openAddModal(ctx = 'fulltime') {
+  ACTIVE_TRACKER = ctx;
+  const title = document.querySelector('#add-modal .modal-title');
+  if (title) title.textContent = ctx === 'parttime' ? 'Add Part-Time Application' : 'Add Application';
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('f-date-added').value = today;
   document.getElementById('f-date-submitted').value = today;
@@ -2010,7 +2153,7 @@ async function submitNewApp() {
     return alert('Company and Role are required.');
   }
 
-  const prevXP = computeXP(ALL_APPS); // snapshot XP before save
+  const prevXP = computeXP(ACTIVE_TRACKER === 'parttime' ? ALL_PT_APPS : ALL_APPS); // snapshot XP before save
 
   // Use exact Supabase column names matching the imported table
   const payload = {
@@ -2028,31 +2171,34 @@ async function submitNewApp() {
   btn.disabled = true;
   btn.textContent = 'Saving…';
 
+  const isPT  = ACTIVE_TRACKER === 'parttime';
+  const table = isPT ? 'Part-Time%20Applications' : 'Applications%20Database';
+  const pfx   = isPT ? 'pt' : 'as';
+
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/Applications%20Database`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
       method:  'POST',
       headers: SB_POST_HEADERS,
       body:    JSON.stringify(payload),
     });
 
     if (!res.ok) {
-      // Try to get error details, fall back to status code
       let errMsg = `HTTP ${res.status}`;
       try { const j = await res.json(); errMsg = j.message || j.error || errMsg; } catch {}
       throw new Error(errMsg);
     }
 
-    // Success — show confirmation, then reload fresh data from Supabase
     document.getElementById('modal-form-wrap').style.display = 'none';
     document.getElementById('modal-success').style.display = '';
-    await loadApps();
+    await loadApps(ACTIVE_TRACKER);
 
-    // Level-up animation — fires when the new app pushes us into a higher level
-    const newXP      = computeXP(ALL_APPS);
+    // Level-up animation
+    const arr        = isPT ? ALL_PT_APPS : ALL_APPS;
+    const newXP      = computeXP(arr);
     const prevLvl    = getLevelInfo(prevXP).level;
     const newLvlInfo = getLevelInfo(newXP);
     if (newLvlInfo.level > prevLvl) {
-      triggerLevelUpAnimation(newLvlInfo.level, newLvlInfo.xpIntoLevel, newLvlInfo.xpForNext);
+      triggerLevelUpAnimation(newLvlInfo.level, newLvlInfo.xpIntoLevel, newLvlInfo.xpForNext, pfx);
     }
 
   } catch(e) {
@@ -2066,8 +2212,10 @@ async function submitNewApp() {
 // ─── Edit / Delete application ─────────────────────────────────────────────
 let _editingApp = null; // holds the full app object being edited
 
-function openEditModal(id) {
-  const app = ALL_APPS.find(a => a.id === id);
+function openEditModal(id, ctx = 'fulltime') {
+  ACTIVE_TRACKER = ctx;
+  const arr = ctx === 'parttime' ? ALL_PT_APPS : ALL_APPS;
+  const app = arr.find(a => a.id === id);
   if (!app) return;
   _editingApp = app;
 
@@ -2124,9 +2272,12 @@ async function submitEditApp() {
   const btn = document.getElementById('edit-submit-btn');
   btn.disabled = true; btn.textContent = 'Saving…';
 
+  const isPT  = ACTIVE_TRACKER === 'parttime';
+  const table = isPT ? 'Part-Time%20Applications' : 'Applications%20Database';
+
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/Applications%20Database?id=eq.${encodeURIComponent(id)}`,
+      `${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`,
       { method: 'PATCH', headers: SB_POST_HEADERS, body: JSON.stringify(patch) }
     );
     if (!res.ok) {
@@ -2135,11 +2286,11 @@ async function submitEditApp() {
       throw new Error(msg);
     }
 
-    // Update local state
-    const idx = ALL_APPS.findIndex(a => a.id === id);
+    const arr = isPT ? ALL_PT_APPS : ALL_APPS;
+    const idx = arr.findIndex(a => a.id === id);
     if (idx !== -1) {
-      ALL_APPS[idx] = {
-        ...ALL_APPS[idx],
+      arr[idx] = {
+        ...arr[idx],
         company, role,
         date_added:     patch['Date Added'],
         status:         patch['Application Status'],
@@ -2149,7 +2300,7 @@ async function submitEditApp() {
         notes:          patch['Notes'],
       };
     }
-    renderApps();
+    renderApps(ACTIVE_TRACKER);
     updateHeaderCount();
 
     document.getElementById('edit-form-wrap').style.display = 'none';
@@ -2170,9 +2321,12 @@ async function deleteApp() {
   const delBtn = document.getElementById('edit-delete-btn');
   delBtn.disabled = true; delBtn.textContent = 'Removing…';
 
+  const isPT  = ACTIVE_TRACKER === 'parttime';
+  const table = isPT ? 'Part-Time%20Applications' : 'Applications%20Database';
+
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/Applications%20Database?id=eq.${encodeURIComponent(id)}`,
+      `${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`,
       { method: 'DELETE', headers: SB_POST_HEADERS }
     );
     if (!res.ok) {
@@ -2181,9 +2335,9 @@ async function deleteApp() {
       throw new Error(msg);
     }
 
-    // Remove from local state
-    ALL_APPS = ALL_APPS.filter(a => a.id !== id);
-    renderApps();
+    if (isPT) { ALL_PT_APPS = ALL_PT_APPS.filter(a => a.id !== id); }
+    else      { ALL_APPS    = ALL_APPS.filter(a => a.id !== id); }
+    renderApps(ACTIVE_TRACKER);
     updateHeaderCount();
 
     document.getElementById('edit-form-wrap').style.display = 'none';
@@ -2197,11 +2351,12 @@ async function deleteApp() {
 }
 
 // ─── Inline status update (from table dropdown) ────────────────────────────
-async function updateAppStatus(id, newStatus, selectEl) {
+async function updateAppStatus(id, newStatus, selectEl, ctx = 'fulltime') {
   if (!id) return;
+  const isPT    = ctx === 'parttime';
+  const table   = isPT ? 'Part-Time%20Applications' : 'Applications%20Database';
   const prevCls = selectEl ? selectEl.className : '';
 
-  // Optimistic UI: show saving state
   if (selectEl) {
     selectEl.className = `status-select ${statusCls(newStatus)} saving`;
     selectEl.disabled = true;
@@ -2209,7 +2364,7 @@ async function updateAppStatus(id, newStatus, selectEl) {
 
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/Applications%20Database?id=eq.${encodeURIComponent(id)}`,
+      `${SUPABASE_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`,
       { method: 'PATCH', headers: SB_POST_HEADERS, body: JSON.stringify({ 'Application Status': newStatus }) }
     );
     if (!res.ok) {
@@ -2218,51 +2373,54 @@ async function updateAppStatus(id, newStatus, selectEl) {
       throw new Error(msg);
     }
 
-    // Update local state
-    const app = ALL_APPS.find(a => a.id === id);
+    const arr = isPT ? ALL_PT_APPS : ALL_APPS;
+    const app = arr.find(a => a.id === id);
     if (app) app.status = newStatus;
 
-    // Re-style the select (remove saving state)
     if (selectEl) {
       selectEl.className = `status-select ${statusCls(newStatus)}`;
       selectEl.disabled = false;
     }
 
-    // Refresh stats strip + pipeline bar without re-rendering the whole table
-    renderAppsStats();
+    renderAppsStats(ctx);
     updateHeaderCount();
 
   } catch(e) {
     console.error('updateAppStatus error:', e);
     if (selectEl) {
-      // Revert class and re-enable
       selectEl.className = prevCls.replace(' saving', '');
       selectEl.disabled = false;
     }
     alert(`Failed to update status: ${e.message}`);
-    renderApps(); // full re-render to restore original value in dropdown
+    renderApps(ctx);
   }
 }
 
 // Update stats + pipeline bar in place (no full table re-render)
-function renderAppsStats() {
-  if (!ALL_APPS.length) return;
-  const submitted = ALL_APPS.filter(a => { const s = (a.status||'').toLowerCase(); return s.includes('submit') || s.includes('pending'); });
-  const rejected  = ALL_APPS.filter(a => (a.status||'').toLowerCase().includes('reject'));
-  const interview = ALL_APPS.filter(a => { const s = (a.status||'').toLowerCase(); return s.includes('interview') || s.includes('offer'); });
+function renderAppsStats(ctx = 'fulltime') {
+  const isPT  = ctx === 'parttime';
+  const data  = isPT ? ALL_PT_APPS : ALL_APPS;
+  const pfx   = isPT ? 'pt' : 'as';
+  const pillId = isPT ? 'pill-pt' : 'pill-apps';
+  const barId  = isPT ? 'pt-pipeline-bar' : 'pipeline-bar';
+  if (!data.length) return;
+
+  const submitted = data.filter(a => { const s = (a.status||'').toLowerCase(); return s.includes('submit') || s.includes('pending'); });
+  const rejected  = data.filter(a => (a.status||'').toLowerCase().includes('reject'));
+  const interview = data.filter(a => { const s = (a.status||'').toLowerCase(); return s.includes('interview') || s.includes('offer'); });
   const responded = rejected.length + interview.length;
   const totalSub  = submitted.length + responded;
   const rate      = totalSub > 0 ? Math.round((responded / totalSub) * 100) : 0;
 
-  document.getElementById('as-total').textContent     = ALL_APPS.length;
-  document.getElementById('as-pending').textContent   = submitted.length;
-  document.getElementById('as-rejected').textContent  = rejected.length;
-  document.getElementById('as-interview').textContent = interview.length;
-  document.getElementById('as-rate').textContent      = totalSub ? rate + '%' : '—';
-  document.getElementById('pill-apps').textContent    = ALL_APPS.length;
-  updateLevelBar(ALL_APPS);
+  document.getElementById(`${pfx}-total`).textContent     = data.length;
+  document.getElementById(`${pfx}-pending`).textContent   = submitted.length;
+  document.getElementById(`${pfx}-rejected`).textContent  = rejected.length;
+  document.getElementById(`${pfx}-interview`).textContent = interview.length;
+  document.getElementById(`${pfx}-rate`).textContent      = totalSub ? rate + '%' : '—';
+  document.getElementById(pillId).textContent             = data.length;
+  updateLevelBar(data, pfx);
 
-  const bar = document.getElementById('pipeline-bar');
+  const bar = document.getElementById(barId);
   if (bar) {
     bar.innerHTML = [
       { pct: submitted.length, color: 'var(--status-pending)',  title: 'Pending' },
@@ -2288,22 +2446,22 @@ function getLevelInfo(totalXP) {
   return { level, xpIntoLevel, xpForNext, pct };
 }
 
-function updateLevelBar(apps) {
+function updateLevelBar(apps, pfx = 'as') {
   const totalXP = computeXP(apps);
   const { level, xpIntoLevel, xpForNext, pct } = getLevelInfo(totalXP);
-  const lvlEl  = document.getElementById('as-level');
-  const fillEl = document.getElementById('as-level-fill');
-  const xpEl   = document.getElementById('as-level-xp');
+  const lvlEl  = document.getElementById(`${pfx}-level`);
+  const fillEl = document.getElementById(`${pfx}-level-fill`);
+  const xpEl   = document.getElementById(`${pfx}-level-xp`);
   if (lvlEl)  lvlEl.textContent  = `⚡ Lvl ${level}`;
   if (fillEl) fillEl.style.width = pct + '%';
   if (xpEl)   xpEl.textContent   = `${xpIntoLevel} / ${xpForNext} XP`;
 }
 
-function triggerLevelUpAnimation(newLevel, xpIntoLevel, xpForNext) {
-  const fillEl = document.getElementById('as-level-fill');
-  const lvlEl  = document.getElementById('as-level');
-  const xpEl   = document.getElementById('as-level-xp');
-  const strip  = document.getElementById('apps-stats');
+function triggerLevelUpAnimation(newLevel, xpIntoLevel, xpForNext, pfx = 'as') {
+  const fillEl = document.getElementById(`${pfx}-level-fill`);
+  const lvlEl  = document.getElementById(`${pfx}-level`);
+  const xpEl   = document.getElementById(`${pfx}-level-xp`);
+  const strip  = document.getElementById(pfx === 'pt' ? 'pt-stats' : 'apps-stats');
   if (!fillEl) return;
 
   // Step 1: snap XP bar to 100%
